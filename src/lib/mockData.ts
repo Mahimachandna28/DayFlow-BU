@@ -30,7 +30,7 @@ export const INITIAL_USERS: User[] = [
       basicSalary: 95000,
       hra: 45000,
       allowances: 35000,
-      deductions: 25000, // EPF 11400 + PT 200 + TDS 13400
+      deductions: 25000,
       netSalary: 150000,
       currency: 'INR',
       effectiveFrom: '2024-04-01',
@@ -234,6 +234,82 @@ export const INITIAL_USERS: User[] = [
       panOrTaxId: 'GGSPR7718P',
       uanNumber: '100661928374',
     },
+  },
+  {
+    id: 'user-7',
+    employeeId: 'EMP-007',
+    email: 'arjun.nair@dayflow.in',
+    role: 'EMPLOYEE',
+    isVerified: true,
+    profile: {
+      firstName: 'Arjun',
+      lastName: 'Nair',
+      phone: '+91 98480 34567',
+      address: 'Plot 88, Baner High Street, Pune, Maharashtra 411045',
+      avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+      department: 'Engineering',
+      designation: 'Staff QA Automation Engineer',
+      dateOfJoining: '2023-11-01',
+      employeeId: 'EMP-007',
+      email: 'arjun.nair@dayflow.in',
+      emergencyContact: '+91 98489 87654 (Brother)',
+      skills: ['Playwright', 'Cypress', 'Jest', 'Load Testing', 'CI Test Pipelines', 'Security Testing'],
+      documents: [
+        { id: 'doc-13', name: 'Arjun_Nair_Offer_Letter.pdf', type: 'PDF', size: '1.2 MB', uploadDate: '2023-11-01' },
+      ],
+    },
+    salary: {
+      basicSalary: 48000,
+      hra: 22000,
+      allowances: 15000,
+      deductions: 10000,
+      netSalary: 75000,
+      currency: 'INR',
+      effectiveFrom: '2024-04-01',
+      bankAccount: '•••• •••• 6619',
+      bankName: 'Axis Bank (Baner Branch)',
+      ifscCode: 'UTIB0000412',
+      panOrTaxId: 'HHQAN4412Q',
+      uanNumber: '100551928371',
+    },
+  },
+  {
+    id: 'user-8',
+    employeeId: 'EMP-008',
+    email: 'neha.patel@dayflow.in',
+    role: 'EMPLOYEE',
+    isVerified: true,
+    profile: {
+      firstName: 'Neha',
+      lastName: 'Patel',
+      phone: '+91 98250 89012',
+      address: 'Tower C-1402, Sector 62, Noida, Uttar Pradesh 201309',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      department: 'Product Design',
+      designation: 'Product Marketing & Growth Lead',
+      dateOfJoining: '2024-01-08',
+      employeeId: 'EMP-008',
+      email: 'neha.patel@dayflow.in',
+      emergencyContact: '+91 98259 87654 (Father)',
+      skills: ['Product Analytics', 'UX Writing', 'Go-To-Market', 'Design Systems', 'Customer Empathy'],
+      documents: [
+        { id: 'doc-14', name: 'Neha_Patel_Joining_Dossier.pdf', type: 'PDF', size: '1.6 MB', uploadDate: '2024-01-08' },
+      ],
+    },
+    salary: {
+      basicSalary: 52000,
+      hra: 24000,
+      allowances: 16000,
+      deductions: 12000,
+      netSalary: 80000,
+      currency: 'INR',
+      effectiveFrom: '2024-04-01',
+      bankAccount: '•••• •••• 9928',
+      bankName: 'HDFC Bank (Noida Sector 62)',
+      ifscCode: 'HDFC0000214',
+      panOrTaxId: 'IIRNP9910R',
+      uanNumber: '100441928399',
+    },
   }
 ];
 
@@ -304,175 +380,85 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
   }
 ];
 
-export const INITIAL_ATTENDANCE: AttendanceRecord[] = [
-  // Today's attendance records (2026-08-22)
-  {
-    id: 'att-today-1',
-    userId: 'user-1',
-    employeeName: 'Aarav Mehta',
-    employeeId: 'EMP-001',
-    department: 'Executive HR',
-    date: '2026-08-22',
-    checkIn: '08:45 AM',
-    checkOut: null,
-    totalHours: 4.5,
-    status: 'PRESENT',
-    remarks: 'Morning executive review meeting',
-    locationStatus: 'office',
-    ipAddress: '10.14.20.101',
-    deviceFingerprint: 'DAYFLOW-BLR-01',
-  },
-  {
-    id: 'att-today-2',
-    userId: 'user-2',
-    employeeName: 'Pooja Iyer',
-    employeeId: 'EMP-002',
-    department: 'Human Resources',
-    date: '2026-08-22',
-    checkIn: '09:02 AM',
-    checkOut: null,
-    totalHours: 4.2,
-    status: 'PRESENT',
-    remarks: 'New cohort induction session',
-    locationStatus: 'office',
-    ipAddress: '10.14.20.102',
-    deviceFingerprint: 'DAYFLOW-BLR-02',
-  },
-  {
-    id: 'att-today-3',
-    userId: 'user-3',
-    employeeName: 'Rohan Verma',
-    employeeId: 'EMP-003',
-    department: 'Engineering',
-    date: '2026-08-22',
-    checkIn: '09:15 AM',
-    checkOut: null,
-    totalHours: 4.0,
-    status: 'PRESENT',
-    remarks: 'Frontend release candidate & architecture',
-    locationStatus: 'office',
-    ipAddress: '10.14.20.103',
-    deviceFingerprint: 'DAYFLOW-BLR-03',
-  },
-  {
-    id: 'att-today-4',
-    userId: 'user-4',
-    employeeName: 'Ananya Deshmukh',
-    employeeId: 'EMP-004',
-    department: 'Product Design',
-    date: '2026-08-22',
-    checkIn: '09:30 AM',
-    checkOut: null,
-    totalHours: 3.8,
-    status: 'PRESENT',
-    remarks: 'Design system tokens review',
-    locationStatus: 'office',
-    ipAddress: '10.14.20.104',
-    deviceFingerprint: 'DAYFLOW-BLR-04',
-  },
-  {
-    id: 'att-today-5',
-    userId: 'user-5',
-    employeeName: 'Vikram Malhotra',
-    employeeId: 'EMP-005',
-    department: 'Engineering',
-    date: '2026-08-22',
-    checkIn: null,
-    checkOut: null,
-    totalHours: 0,
-    status: 'ABSENT',
-    remarks: 'Unscheduled absent / Standby',
-    locationStatus: 'blocked',
-    ipAddress: '192.168.1.99',
-    deviceFingerprint: 'UNKNOWN-DEVICE',
-  },
-  {
-    id: 'att-today-6',
-    userId: 'user-6',
-    employeeName: 'Sneha Reddy',
-    employeeId: 'EMP-006',
-    department: 'Infrastructure',
-    date: '2026-08-22',
-    checkIn: '09:00 AM',
-    checkOut: '01:30 PM',
-    totalHours: 4.5,
-    status: 'HALF_DAY',
-    remarks: 'Half-day for AWS Architect exam',
-    locationStatus: 'office',
-    ipAddress: '10.14.20.106',
-    deviceFingerprint: 'DAYFLOW-HYD-01',
-  },
+// Helper to generate a realistic 30-day attendance history matrix for all 8 employees
+function generate30DayAttendance(): AttendanceRecord[] {
+  const records: AttendanceRecord[] = [];
+  const baseDate = new Date('2026-08-22');
 
-  // Historical Records for Rohan Verma (EMP-003)
-  {
-    id: 'att-hist-1',
-    userId: 'user-3',
-    employeeName: 'Rohan Verma',
-    employeeId: 'EMP-003',
-    department: 'Engineering',
-    date: '2026-08-21',
-    checkIn: '09:05 AM',
-    checkOut: '06:15 PM',
-    totalHours: 8.75,
-    status: 'PRESENT',
-    remarks: 'Sprint release build',
-    locationStatus: 'office',
-  },
-  {
-    id: 'att-hist-2',
-    userId: 'user-3',
-    employeeName: 'Rohan Verma',
-    employeeId: 'EMP-003',
-    department: 'Engineering',
-    date: '2026-08-20',
-    checkIn: '08:58 AM',
-    checkOut: '06:00 PM',
-    totalHours: 8.53,
-    status: 'PRESENT',
-    locationStatus: 'office',
-  },
-  {
-    id: 'att-hist-3',
-    userId: 'user-3',
-    employeeName: 'Rohan Verma',
-    employeeId: 'EMP-003',
-    department: 'Engineering',
-    date: '2026-08-19',
-    checkIn: '09:12 AM',
-    checkOut: '06:30 PM',
-    totalHours: 8.8,
-    status: 'PRESENT',
-    locationStatus: 'office',
-  },
-  {
-    id: 'att-hist-4',
-    userId: 'user-3',
-    employeeName: 'Rohan Verma',
-    employeeId: 'EMP-003',
-    department: 'Engineering',
-    date: '2026-08-18',
-    checkIn: '09:20 AM',
-    checkOut: '01:30 PM',
-    totalHours: 4.16,
-    status: 'HALF_DAY',
-    remarks: 'Medical checkup afternoon',
-    locationStatus: 'office',
-  },
-  {
-    id: 'att-hist-5',
-    userId: 'user-3',
-    employeeName: 'Rohan Verma',
-    employeeId: 'EMP-003',
-    department: 'Engineering',
-    date: '2026-08-15',
-    checkIn: '09:00 AM',
-    checkOut: '05:45 PM',
-    totalHours: 8.75,
-    status: 'PRESENT',
-    remarks: 'Independence Day special project setup',
-    locationStatus: 'office',
-  }
-];
+  INITIAL_USERS.forEach((user, userIdx) => {
+    for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+      const d = new Date(baseDate);
+      d.setDate(baseDate.getDate() - dayOffset);
+      const dayOfWeek = d.getDay(); // 0 is Sunday, 6 is Saturday
+      const dateStr = d.toISOString().split('T')[0];
+
+      // Skip Sundays
+      if (dayOfWeek === 0) continue;
+
+      const isToday = dayOffset === 0;
+      let checkIn = '09:05 AM';
+      let checkOut: string | null = '06:15 PM';
+      let hours = 8.6;
+      let status: AttendanceRecord['status'] = 'PRESENT';
+      let remarks = 'Regular Shift Complete';
+      let locationStatus: AttendanceRecord['locationStatus'] = 'office';
+      let distance = 0.03;
+
+      // Realistic variations for employees
+      if (isToday) {
+        checkIn = userIdx === 4 ? null! : '09:00 AM';
+        checkOut = null;
+        hours = userIdx === 4 ? 0 : 4.5;
+        status = userIdx === 4 ? 'ABSENT' : userIdx === 5 ? 'HALF_DAY' : 'PRESENT';
+        remarks = userIdx === 4 ? 'Unscheduled absent' : 'Active shift in progress';
+        locationStatus = userIdx === 4 ? 'blocked' : 'office';
+        distance = userIdx === 4 ? 14.2 : 0.03;
+      } else if (dayOffset % 9 === 0 && userIdx > 1) {
+        // Occasional half-day
+        checkIn = '09:15 AM';
+        checkOut = '01:30 PM';
+        hours = 4.25;
+        status = 'HALF_DAY';
+        remarks = 'Approved half day medical appointment';
+      } else if (dayOffset === 12 && userIdx === 4) {
+        // Approved leave day
+        checkIn = null!;
+        checkOut = null;
+        hours = 0;
+        status = 'LEAVE';
+        remarks = 'Independence Day holiday bridge leave';
+      } else {
+        const randMin = (dayOffset * 7 + userIdx * 11) % 25;
+        checkIn = `08:${(45 + (randMin % 15)).toString().padStart(2, '0')} AM`;
+        checkOut = `06:${(10 + (randMin % 20)).toString().padStart(2, '0')} PM`;
+        hours = +(8.2 + (randMin % 10) * 0.1).toFixed(2);
+      }
+
+      records.push({
+        id: `att-30d-${user.id}-${dayOffset}`,
+        userId: user.id,
+        employeeName: `${user.profile.firstName} ${user.profile.lastName}`,
+        employeeId: user.employeeId,
+        department: user.profile.department,
+        date: dateStr,
+        checkIn,
+        checkOut,
+        totalHours: hours,
+        status,
+        remarks,
+        locationStatus,
+        geoDistanceKm: distance,
+        geoLabel: locationStatus === 'office' ? 'Prestige Tech Park HQ (0.03km)' : 'Remote Location',
+        ipAddress: `10.14.20.${100 + userIdx}`,
+        deviceFingerprint: `DAYFLOW-SEC-${user.employeeId}`,
+      });
+    }
+  });
+
+  return records;
+}
+
+export const INITIAL_ATTENDANCE: AttendanceRecord[] = generate30DayAttendance();
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
