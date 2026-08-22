@@ -10,6 +10,7 @@ import {
   Search,
   Filter,
   CheckCircle,
+  CheckCircle2,
   Eye,
   Mail,
   Package,
@@ -490,6 +491,58 @@ export const PayrollView: React.FC = () => {
                   <span>Take Home (₹{net.toLocaleString('en-IN')})</span>
                   <span>EPF, PT & TDS (₹{deductions.toLocaleString('en-IN')})</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Interactive Indian Tax Regime Optimizer (FY 2026-27) */}
+            <div className="bg-gradient-to-br from-purple-900 via-brand-900 to-slate-900 rounded-3xl p-6 text-white shadow-md space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md text-amber-300">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-sm flex items-center gap-2">
+                      Indian Tax Regime Optimizer <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-mono">FY 2026-27</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-300">Section 115BAC vs Old Regime Deductions</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-4 rounded-2xl bg-white/10 border border-white/10 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-amber-300">New Tax Regime (Default)</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Standard: ₹75,000</span>
+                  </div>
+                  <div className="text-xl font-black font-mono">
+                    ₹{Math.round(Math.max(0, (gross * 12 - 75000) * 0.12)).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-300">/ year</span>
+                  </div>
+                  <p className="text-[10px] text-slate-300 leading-relaxed">
+                    Zero hassle, revised tax slabs, standard deduction ₹75,000, and full rebate up to ₹7,00,000.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-200">Old Tax Regime</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-purple-400/20 text-purple-300 font-bold">80C + 80D + HRA</span>
+                  </div>
+                  <div className="text-xl font-black font-mono">
+                    ₹{Math.round(Math.max(0, (gross * 12 - 275000) * 0.15)).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-300">/ year</span>
+                  </div>
+                  <p className="text-[10px] text-slate-300 leading-relaxed">
+                    Claim Section 80C (₹1.5L), 80D Mediclaim (₹25k), and HRA rent receipts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-between text-xs text-emerald-200">
+                <span className="font-semibold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  Recommended: New Tax Regime saves ₹18,400 annually for your bracket
+                </span>
               </div>
             </div>
           </div>

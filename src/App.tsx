@@ -14,6 +14,7 @@ import { LeaveManagementView } from './components/leave/LeaveManagementView';
 import { PayrollView } from './components/payroll/PayrollView';
 import { ProfileView } from './components/profile/ProfileView';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
+import { AICopilotModal } from './components/ai/AICopilotModal';
 
 const AppContent: React.FC = () => {
   const { currentView, currentUser } = useApp();
@@ -66,6 +67,9 @@ const AppContent: React.FC = () => {
 
       {/* Auth & Account Selector Modal */}
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+
+      {/* AI Smart HR Copilot & Statutory Assistant */}
+      <AICopilotModal />
 
       {/* Sonner-style custom Toast alerts */}
       <ToastContainer />
