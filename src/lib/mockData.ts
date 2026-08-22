@@ -505,13 +505,13 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
   }
 ];
 
-// Helper to generate a realistic 30-day attendance history matrix for all 10 employees
-function generate30DayAttendance(): AttendanceRecord[] {
+// Helper to generate a realistic 60-day attendance history matrix for all 10 employees (500+ records)
+function generate60DayAttendance(): AttendanceRecord[] {
   const records: AttendanceRecord[] = [];
   const baseDate = new Date('2026-08-22');
 
   INITIAL_USERS.forEach((user, userIdx) => {
-    for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+    for (let dayOffset = 0; dayOffset < 60; dayOffset++) {
       const d = new Date(baseDate);
       d.setDate(baseDate.getDate() - dayOffset);
       const dayOfWeek = d.getDay(); // 0 is Sunday
@@ -549,6 +549,20 @@ function generate30DayAttendance(): AttendanceRecord[] {
         hours = 0;
         status = 'LEAVE';
         remarks = 'Independence Day holiday bridge leave';
+      } else if (dayOffset % 14 === 0 && userIdx === 2) {
+        checkIn = '08:50 AM';
+        checkOut = '06:30 PM';
+        hours = 9.2;
+        status = 'PRESENT';
+        remarks = 'Office HQ (Full Day Shift)';
+      } else if (dayOffset % 11 === 0 && userIdx === 5) {
+        checkIn = '09:40 AM';
+        checkOut = '06:40 PM';
+        hours = 8.5;
+        status = 'PRESENT';
+        remarks = '[Geo Alert] Remote Check-In (Home Network)';
+        locationStatus = 'remote';
+        distance = 6.2;
       } else {
         const randMin = (dayOffset * 7 + userIdx * 11) % 25;
         checkIn = `08:${(45 + (randMin % 15)).toString().padStart(2, '0')} AM`;
@@ -557,7 +571,7 @@ function generate30DayAttendance(): AttendanceRecord[] {
       }
 
       records.push({
-        id: `att-30d-${user.id}-${dayOffset}`,
+        id: `att-60d-${user.id}-${dayOffset}`,
         userId: user.id,
         employeeName: `${user.profile.firstName} ${user.profile.lastName}`,
         employeeId: user.employeeId,
@@ -580,7 +594,7 @@ function generate30DayAttendance(): AttendanceRecord[] {
   return records;
 }
 
-export const INITIAL_ATTENDANCE: AttendanceRecord[] = generate30DayAttendance();
+export const INITIAL_ATTENDANCE: AttendanceRecord[] = generate60DayAttendance();
 
 export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
