@@ -10,10 +10,17 @@ import {
   Search,
   Filter,
   CheckCircle,
+  Eye,
+  Mail,
+  Package,
+  Sparkles,
+  Send,
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { useApp } from '../../context/AppContext';
 import { generatePayslipPDF } from '../../lib/pdfGenerator';
 import { User, SalaryStructure } from '../../types';
+import { PayslipPreviewModal } from './PayslipPreviewModal';
 
 export const PayrollView: React.FC = () => {
   const { currentUser, users, updateSalary, addToast } = useApp();
@@ -24,6 +31,12 @@ export const PayrollView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [isBulkGenerating, setIsBulkGenerating] = useState(false);
+  const [isBulkEmailing, setIsBulkEmailing] = useState(false);
+
+  // Preview Modal state
+  const [previewUser, setPreviewUser] = useState<User | null>(null);
+  const [previewMonth, setPreviewMonth] = useState('August 2026');
 
   // Edit fields state
   const [editBasic, setEditBasic] = useState<number>(0);
@@ -69,6 +82,52 @@ export const PayrollView: React.FC = () => {
     setEditingUserId(null);
   };
 
+  // Bulk Operations
+  const handleBulkGenerate = () => {
+    setIsBulkGenerating(true);
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count < users.length) {
+        generatePayslipPDF(users[count], 'August 2026');
+        count++;
+      } else {
+        clearInterval(interval);
+        setIsBulkGenerating(false);
+        try {
+          confetti({
+            particleCount: 70,
+            spread: 80,
+            origin: { y: 0.6 },
+          });
+        } catch (e) {}
+        addToast(
+          'Batch Generation Complete',
+          `Generated and downloaded ${users.length} official payslips.`,
+          'success'
+        );
+      }
+    }, 200);
+  };
+
+  const handleBulkEmail = () => {
+    setIsBulkEmailing(true);
+    setTimeout(() => {
+      setIsBulkEmailing(false);
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      } catch (e) {}
+      addToast(
+        'Payroll Disbursed via Email',
+        `Dispatched digital payslip statements to all ${users.length} employee mailboxes.`,
+        'success'
+      );
+    }, 1200);
+  };
+
   // Salary components for current user (Employee View)
   const basic = currentUser.salary.basicSalary;
   const hra = currentUser.salary.hra;
@@ -82,16 +141,17 @@ export const PayrollView: React.FC = () => {
     { id: 'cycle-1', month: 'August 2026', status: 'PAID', reference: `PAY-202608-${currentUser.employeeId}` },
     { id: 'cycle-2', month: 'July 2026', status: 'PAID', reference: `PAY-202607-${currentUser.employeeId}` },
     { id: 'cycle-3', month: 'June 2026', status: 'PAID', reference: `PAY-202606-${currentUser.employeeId}` },
+    { id: 'cycle-4', month: 'May 2026', status: 'PAID', reference: `PAY-202605-${currentUser.employeeId}` },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
             <DollarSign className="w-6 h-6 text-brand-600" />
-            Payroll & Salary Sheets
+            Payroll & Salary Center
           </h1>
           <p className="text-xs md:text-sm text-slate-500 mt-1">
             {isAdminOrHR
@@ -99,13 +159,45 @@ export const PayrollView: React.FC = () => {
               : 'Review salary structures, earnings statements, deductions breakdown, and download historical payslips'}
           </p>
         </div>
+
+        {isAdminOrHR ? (
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleBulkEmail}
+              disabled={isBulkEmailing}
+              className="btn-secondary text-xs py-2.5 px-3.5"
+            >
+              <Send className="w-3.5 h-3.5 text-brand-600" />
+              {isBulkEmailing ? 'Disbursing...' : 'Email Slips to All'}
+            </button>
+            <button
+              onClick={handleBulkGenerate}
+              disabled={isBulkGenerating}
+              className="btn-primary text-xs py-2.5 px-4 bg-brand-600 hover:bg-brand-700 shadow-brand-600/20"
+            >
+              <Package className="w-3.5 h-3.5" />
+              {isBulkGenerating ? 'Generating Batch...' : `Batch Generate All (${users.length})`}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              setPreviewUser(currentUser);
+              setPreviewMonth('August 2026');
+            }}
+            className="btn-primary text-xs py-2.5 px-4 shadow-brand-600/20"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Preview & Download Payslip
+          </button>
+        )}
       </div>
 
       {/* ADMIN VIEW: Master Payroll Table */}
       {isAdminOrHR ? (
         <div className="space-y-4">
           {/* Filtering panel */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-sm">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -135,134 +227,149 @@ export const PayrollView: React.FC = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] font-extrabold uppercase tracking-wider">
+                  <tr className="border-b border-slate-100 bg-slate-50/70 text-[10px] uppercase tracking-wider font-extrabold text-slate-400">
                     <th className="p-4 pl-6">Employee</th>
                     <th className="p-4">Department</th>
-                    <th className="p-4">Basic Salary</th>
-                    <th className="p-4">HRA</th>
-                    <th className="p-4">Allowances</th>
+                    <th className="p-4">Base Salary</th>
+                    <th className="p-4">HRA & Allowances</th>
                     <th className="p-4">Deductions</th>
-                    <th className="p-4 font-bold text-slate-800">Net Salary</th>
+                    <th className="p-4">Net Payout</th>
                     <th className="p-4 pr-6 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredUsers.map((user) => {
                     const isEditing = editingUserId === user.id;
+
                     return (
                       <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="p-4 pl-6">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <img
                               src={user.profile.avatarUrl}
                               alt={user.profile.firstName}
-                              className="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100"
+                              className="w-9 h-9 rounded-xl object-cover ring-1 ring-slate-200"
                             />
                             <div>
-                              <p className="font-bold text-slate-800">
+                              <span className="font-bold text-slate-800 block">
                                 {user.profile.firstName} {user.profile.lastName}
-                              </p>
-                              <p className="text-[9px] text-slate-400 font-mono">{user.employeeId}</p>
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {user.employeeId}
+                              </span>
                             </div>
                           </div>
                         </td>
+
                         <td className="p-4 font-medium text-slate-600">{user.profile.department}</td>
+
+                        {/* Editable Form vs Static Fields */}
                         {isEditing ? (
-                          <td colSpan={5} className="p-4">
-                            <form
-                              onSubmit={(e) => handleSaveSalary(e, user.id)}
-                              className="flex flex-wrap items-center gap-2"
-                            >
-                              <div className="w-20">
-                                <label className="block text-[8px] font-bold text-slate-400">Basic</label>
+                          <>
+                            <td className="p-4">
+                              <input
+                                type="number"
+                                value={editBasic}
+                                onChange={(e) => setEditBasic(Number(e.target.value))}
+                                className="w-24 px-2 py-1 bg-white border border-brand-400 rounded-lg text-xs font-bold"
+                              />
+                            </td>
+                            <td className="p-4">
+                              <div className="flex gap-1.5">
                                 <input
                                   type="number"
-                                  value={editBasic}
-                                  onChange={(e) => setEditBasic(Number(e.target.value))}
-                                  className="w-full p-1 bg-slate-50 border border-slate-200 rounded text-xs focus:outline-none"
-                                />
-                              </div>
-                              <div className="w-20">
-                                <label className="block text-[8px] font-bold text-slate-400">HRA</label>
-                                <input
-                                  type="number"
+                                  placeholder="HRA"
                                   value={editHra}
                                   onChange={(e) => setEditHra(Number(e.target.value))}
-                                  className="w-full p-1 bg-slate-50 border border-slate-200 rounded text-xs focus:outline-none"
+                                  className="w-16 px-2 py-1 bg-white border border-brand-400 rounded-lg text-xs"
                                 />
-                              </div>
-                              <div className="w-20">
-                                <label className="block text-[8px] font-bold text-slate-400">Allowances</label>
                                 <input
                                   type="number"
+                                  placeholder="Allowances"
                                   value={editAllowances}
                                   onChange={(e) => setEditAllowances(Number(e.target.value))}
-                                  className="w-full p-1 bg-slate-50 border border-slate-200 rounded text-xs focus:outline-none"
+                                  className="w-16 px-2 py-1 bg-white border border-brand-400 rounded-lg text-xs"
                                 />
                               </div>
-                              <div className="w-20">
-                                <label className="block text-[8px] font-bold text-slate-400">Deductions</label>
-                                <input
-                                  type="number"
-                                  value={editDeductions}
-                                  onChange={(e) => setEditDeductions(Number(e.target.value))}
-                                  className="w-full p-1 bg-slate-50 border border-slate-200 rounded text-xs focus:outline-none"
-                                />
-                              </div>
-                              <div className="w-28">
-                                <label className="block text-[8px] font-bold text-slate-400">Bank Acct</label>
-                                <input
-                                  type="text"
-                                  value={editBank}
-                                  onChange={(e) => setEditBank(e.target.value)}
-                                  className="w-full p-1 bg-slate-50 border border-slate-200 rounded text-xs focus:outline-none"
-                                />
-                              </div>
-                              <div className="flex gap-1.5 self-end">
-                                <button type="submit" className="btn-primary py-1 px-2.5 text-[10px] rounded-lg">
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingUserId(null)}
-                                  className="btn-secondary py-1 px-2.5 text-[10px] rounded-lg"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </form>
-                          </td>
+                            </td>
+                            <td className="p-4">
+                              <input
+                                type="number"
+                                value={editDeductions}
+                                onChange={(e) => setEditDeductions(Number(e.target.value))}
+                                className="w-20 px-2 py-1 bg-white border border-rose-400 rounded-lg text-xs font-bold text-rose-600"
+                              />
+                            </td>
+                            <td className="p-4 font-extrabold text-emerald-600 font-mono">
+                              ${(editBasic + editHra + editAllowances - editDeductions).toLocaleString()}
+                            </td>
+                            <td className="p-4 pr-6 text-right flex items-center justify-end gap-2">
+                              <button
+                                onClick={(e) => handleSaveSalary(e, user.id)}
+                                className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-bold"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingUserId(null)}
+                                className="px-2 py-1 bg-slate-200 text-slate-600 rounded-lg text-[11px]"
+                              >
+                                Cancel
+                              </button>
+                            </td>
+                          </>
                         ) : (
                           <>
-                            <td className="p-4 text-slate-700">${user.salary.basicSalary.toLocaleString()}</td>
-                            <td className="p-4 text-slate-700">${user.salary.hra.toLocaleString()}</td>
-                            <td className="p-4 text-slate-700">${user.salary.allowances.toLocaleString()}</td>
-                            <td className="p-4 text-rose-600">-${user.salary.deductions.toLocaleString()}</td>
-                            <td className="p-4 font-bold text-emerald-600">
+                            <td className="p-4 font-mono font-semibold text-slate-700">
+                              ${user.salary.basicSalary.toLocaleString()}
+                            </td>
+                            <td className="p-4 font-mono text-slate-500">
+                              ${(user.salary.hra + user.salary.allowances).toLocaleString()}
+                            </td>
+                            <td className="p-4 font-mono text-rose-500">
+                              -${user.salary.deductions.toLocaleString()}
+                            </td>
+                            <td className="p-4 font-mono font-extrabold text-emerald-600">
                               ${user.salary.netSalary.toLocaleString()}
                             </td>
                           </>
                         )}
+
                         {!isEditing && (
-                          <td className="p-4 pr-6 text-right flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => handleEditClick(user)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-slate-100 transition-all"
-                              title="Update salary structure"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => generatePayslipPDF(user, 'August 2026')}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 transition-all"
-                              title="Generate PDF payslip"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
+                          <td className="p-4 pr-6 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleEditClick(user)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-slate-100 transition-all"
+                                title="Update salary structure"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setPreviewUser(user);
+                                  setPreviewMonth('August 2026');
+                                }}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-slate-100 transition-all"
+                                title="Preview payslip modal"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  generatePayslipPDF(user, 'August 2026');
+                                  addToast('Payslip Downloaded', `Downloaded for ${user.profile.firstName}`, 'success');
+                                }}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 transition-all"
+                                title="1-Click Download PDF"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -278,10 +385,10 @@ export const PayrollView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left panel: Breakdown Cards */}
           <div className="lg:col-span-2 space-y-5">
-            <h3 className="font-extrabold text-slate-900 text-sm">compensation structure breakdown</h3>
+            <h3 className="font-extrabold text-slate-900 text-sm">Compensation Structure Breakdown</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs relative overflow-hidden flex items-start gap-4">
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm relative overflow-hidden flex items-start gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Coins className="w-5 h-5" />
                 </div>
@@ -292,7 +399,7 @@ export const PayrollView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs relative overflow-hidden flex items-start gap-4">
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm relative overflow-hidden flex items-start gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Receipt className="w-5 h-5" />
                 </div>
@@ -303,7 +410,7 @@ export const PayrollView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs relative overflow-hidden flex items-start gap-4">
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm relative overflow-hidden flex items-start gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <PiggyBank className="w-5 h-5" />
                 </div>
@@ -314,7 +421,7 @@ export const PayrollView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs relative overflow-hidden flex items-start gap-4">
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm relative overflow-hidden flex items-start gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Percent className="w-5 h-5" />
                 </div>
@@ -327,7 +434,7 @@ export const PayrollView: React.FC = () => {
             </div>
 
             {/* Visual Bar Graph breakdown */}
-            <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+            <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
               <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Gross vs. Net Ratio</h4>
               <div className="relative pt-1">
                 <div className="flex mb-2 items-center justify-between text-xs font-semibold">
@@ -356,7 +463,7 @@ export const PayrollView: React.FC = () => {
           <div className="space-y-4">
             <h3 className="font-extrabold text-slate-900 text-sm">Download Payslips</h3>
 
-            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3.5">
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3.5">
               {payslipCycles.map((cycle) => (
                 <div
                   key={cycle.id}
@@ -369,9 +476,22 @@ export const PayrollView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="badge badge-approved text-[9px] py-0.5 px-2">Paid</span>
                     <button
-                      onClick={() => generatePayslipPDF(currentUser, cycle.month)}
+                      onClick={() => {
+                        setPreviewUser(currentUser);
+                        setPreviewMonth(cycle.month);
+                      }}
+                      className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition-all"
+                      title="Preview Statement"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        generatePayslipPDF(currentUser, cycle.month);
+                        addToast('Payslip Downloaded', `Statement for ${cycle.month} downloaded.`, 'success');
+                      }}
                       className="p-1.5 rounded-lg bg-white border border-slate-200 group-hover:bg-brand-600 group-hover:text-white group-hover:border-brand-600 transition-all"
-                      title="Download PDF"
+                      title="1-Click Download PDF"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
@@ -381,6 +501,16 @@ export const PayrollView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Payslip Preview Modal */}
+      {previewUser && (
+        <PayslipPreviewModal
+          isOpen={!!previewUser}
+          onClose={() => setPreviewUser(null)}
+          user={previewUser}
+          initialMonth={previewMonth}
+        />
       )}
     </div>
   );

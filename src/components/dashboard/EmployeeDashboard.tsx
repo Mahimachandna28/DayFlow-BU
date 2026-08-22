@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { generatePayslipPDF } from '../../lib/pdfGenerator';
+import { PayslipPreviewModal } from '../payroll/PayslipPreviewModal';
 
 export const EmployeeDashboard: React.FC = () => {
   const {
@@ -31,7 +32,8 @@ export const EmployeeDashboard: React.FC = () => {
     addToast,
   } = useApp();
 
-  const [selectedMonth] = useState('August 2026');
+  const [selectedMonth, setSelectedMonth] = useState('August 2026');
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // Format seconds to HH:MM:SS
   const formatTime = (seconds: number) => {
@@ -82,24 +84,47 @@ export const EmployeeDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <button
-              onClick={() => setCurrentView('leaves')}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-sm border border-white/10 transition-all flex items-center gap-2"
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {/* Pay Period Dropdown */}
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-white/10 text-white text-xs font-semibold backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-1 focus:ring-brand-400"
             >
-              <Calendar className="w-3.5 h-3.5" />
-              Apply Leave
-            </button>
+              <option value="August 2026" className="bg-slate-900 text-white">August 2026 (Latest)</option>
+              <option value="July 2026" className="bg-slate-900 text-white">July 2026</option>
+              <option value="June 2026" className="bg-slate-900 text-white">June 2026</option>
+              <option value="May 2026" className="bg-slate-900 text-white">May 2026</option>
+            </select>
+
             <button
-              onClick={() => generatePayslipPDF(currentUser, selectedMonth)}
+              onClick={() => setShowPreviewModal(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-sm border border-white/10 transition-all flex items-center gap-1.5"
+            >
+              <FileCheck className="w-3.5 h-3.5" />
+              Preview
+            </button>
+
+            <button
+              onClick={() => {
+                generatePayslipPDF(currentUser, selectedMonth);
+                addToast('Payslip Downloaded', `Official statement for ${selectedMonth} downloaded.`, 'success');
+              }}
               className="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
-              Download Payslip
+              1-Click Download
             </button>
           </div>
         </div>
       </div>
+
+      <PayslipPreviewModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        user={currentUser}
+        initialMonth={selectedMonth}
+      />
 
       {/* Main Grid: Live Clock-In Widget + Key Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

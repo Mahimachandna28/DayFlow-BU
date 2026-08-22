@@ -11,17 +11,22 @@ import {
   ChevronRight,
   ShieldCheck,
   Download,
+  Eye,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { generatePayslipPDF } from '../../lib/pdfGenerator';
 import { User } from '../../types';
+import { PayslipPreviewModal } from '../payroll/PayslipPreviewModal';
 
 export const EmployeeDirectoryView: React.FC = () => {
-  const { users, currentUser, switchUser, setCurrentView } = useApp();
+  const { users, currentUser, switchUser, setCurrentView, addToast } = useApp();
 
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [activeModalUser, setActiveModalUser] = useState<User | null>(null);
+  const [previewUser, setPreviewUser] = useState<User | null>(null);
+  const [previewMonth, setPreviewMonth] = useState('August 2026');
 
   const departments = ['All', 'Engineering', 'Human Resources', 'Product Design', 'Infrastructure'];
 
@@ -45,7 +50,7 @@ export const EmployeeDirectoryView: React.FC = () => {
             Company Employee Directory
           </h1>
           <p className="text-xs md:text-sm text-slate-500 mt-1">
-            Browse corporate profiles, job assignments, and cross-functional teams
+            Browse corporate profiles, job assignments, compensation archives, and team statements
           </p>
         </div>
 
@@ -122,8 +127,10 @@ export const EmployeeDirectoryView: React.FC = () => {
                   <span className="text-slate-700 truncate max-w-[170px]">{user.email}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Joined:</span>
-                  <span className="text-slate-700">{user.profile.dateOfJoining}</span>
+                  <span className="text-slate-400">Monthly Net:</span>
+                  <span className="font-bold font-mono text-emerald-600">
+                    ${user.salary.netSalary.toLocaleString()} USD
+                  </span>
                 </div>
               </div>
             </div>
@@ -131,9 +138,9 @@ export const EmployeeDirectoryView: React.FC = () => {
             <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
               <button
                 onClick={() => setActiveModalUser(user)}
-                className="text-xs font-bold text-slate-700 hover:text-brand-600"
+                className="text-xs font-bold text-slate-700 hover:text-brand-600 flex items-center gap-1"
               >
-                Inspect Details
+                <Eye className="w-3.5 h-3.5" /> Inspect Dossier
               </button>
               <button
                 onClick={() => switchUser(user.id)}
@@ -149,7 +156,7 @@ export const EmployeeDirectoryView: React.FC = () => {
       {/* User Details Modal */}
       {activeModalUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
@@ -179,8 +186,8 @@ export const EmployeeDirectoryView: React.FC = () => {
                 <span className="font-bold text-slate-800">{activeModalUser.email}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex justify-between">
-                <span className="text-slate-400">Phone:</span>
-                <span className="font-bold text-slate-800">{activeModalUser.profile.phone}</span>
+                <span className="text-slate-400">Disbursal Account:</span>
+                <span className="font-bold font-mono text-slate-800">{activeModalUser.salary.bankAccount} ({activeModalUser.salary.bankName})</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex justify-between">
                 <span className="text-slate-400">Monthly Compensation:</span>
@@ -190,12 +197,54 @@ export const EmployeeDirectoryView: React.FC = () => {
               </div>
             </div>
 
+            {/* Historical Payslips Quick List for Admin */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <span className="text-xs font-bold text-slate-900 block">
+                Issued Compensation Statements
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {['August 2026', 'July 2026', 'June 2026', 'May 2026'].map((m) => (
+                  <div
+                    key={m}
+                    className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between"
+                  >
+                    <span className="font-semibold text-slate-700">{m}</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setPreviewUser(activeModalUser);
+                          setPreviewMonth(m);
+                        }}
+                        className="p-1 rounded hover:bg-slate-200 text-slate-600"
+                        title="Preview Statement"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          generatePayslipPDF(activeModalUser, m);
+                          addToast('Statement Exported', `Generated ${m} slip for ${activeModalUser.profile.firstName}`, 'success');
+                        }}
+                        className="p-1 rounded hover:bg-slate-200 text-brand-600"
+                        title="Download PDF"
+                      >
+                        <Download className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between pt-2">
               <button
-                onClick={() => generatePayslipPDF(activeModalUser, 'August 2026')}
+                onClick={() => {
+                  setPreviewUser(activeModalUser);
+                  setPreviewMonth('August 2026');
+                }}
                 className="btn-secondary text-xs py-2 px-3"
               >
-                <Download className="w-3.5 h-3.5" /> Export Payslip PDF
+                <FileText className="w-3.5 h-3.5" /> Full Statement Preview
               </button>
               <div className="flex items-center gap-2">
                 <button
@@ -217,6 +266,16 @@ export const EmployeeDirectoryView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Payslip Preview Modal */}
+      {previewUser && (
+        <PayslipPreviewModal
+          isOpen={!!previewUser}
+          onClose={() => setPreviewUser(null)}
+          user={previewUser}
+          initialMonth={previewMonth}
+        />
       )}
     </div>
   );
