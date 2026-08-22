@@ -17,6 +17,7 @@ import {
   FileText,
   ShieldCheck,
   CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Profile, DocumentItem } from '../../types';
@@ -24,24 +25,65 @@ import { Profile, DocumentItem } from '../../types';
 export const ProfileView: React.FC = () => {
   const { currentUser, updateProfile, users, addToast } = useApp();
 
-  const isAdminOrHR = currentUser.role === 'ADMIN' || currentUser.role === 'HR_OFFICER';
+  // If currentUser is not yet loaded, show clean placeholder
+  if (!currentUser) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-500 shadow-sm">
+        <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+        <p className="font-bold text-slate-800">Profile Loading</p>
+        <p className="text-xs text-slate-400 mt-1">Please select an employee from the top bar to inspect their profile.</p>
+      </div>
+    );
+  }
+
+  const isAdminOrHR = currentUser?.role === 'ADMIN' || currentUser?.role === 'HR_OFFICER';
+
+  // Defensive profile and salary fallbacks
+  const userProfile = currentUser.profile || {
+    firstName: 'Team',
+    lastName: 'Member',
+    phone: '+91 98000 00000',
+    address: 'Bengaluru, Karnataka',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    department: 'Engineering',
+    designation: 'Software Engineer',
+    dateOfJoining: '2023-01-01',
+    emergencyContact: '+91 98000 11111',
+    skills: ['JavaScript', 'React'],
+    documents: [],
+  };
+
+  const userSalary = currentUser.salary || {
+    basicSalary: 60000,
+    hra: 30000,
+    allowances: 20000,
+    deductions: 15000,
+    netSalary: 95000,
+    currency: 'INR',
+    effectiveFrom: '2024-04-01',
+    bankAccount: '•••• •••• 1234',
+    bankName: 'HDFC Bank',
+    ifscCode: 'HDFC0000128',
+    panOrTaxId: 'AAAPM1234F',
+    uanNumber: '100982341029',
+  };
 
   // Tabs state
   const [activeTab, setActiveTab] = useState<'personal' | 'job' | 'salary' | 'docs'>('personal');
 
-  // Form edit states
-  const [firstName, setFirstName] = useState(currentUser.profile.firstName);
-  const [lastName, setLastName] = useState(currentUser.profile.lastName);
-  const [phone, setPhone] = useState(currentUser.profile.phone || '');
-  const [address, setAddress] = useState(currentUser.profile.address || '');
-  const [emergencyContact, setEmergencyContact] = useState(currentUser.profile.emergencyContact || '');
-  const [skillsStr, setSkillsStr] = useState(currentUser.profile.skills?.join(', ') || '');
+  // Form edit states with default fallbacks
+  const [firstName, setFirstName] = useState(userProfile.firstName || '');
+  const [lastName, setLastName] = useState(userProfile.lastName || '');
+  const [phone, setPhone] = useState(userProfile.phone || '');
+  const [address, setAddress] = useState(userProfile.address || '');
+  const [emergencyContact, setEmergencyContact] = useState(userProfile.emergencyContact || '');
+  const [skillsStr, setSkillsStr] = useState(userProfile.skills?.join(', ') || '');
 
   // Corporate fields (Admin-only editable)
-  const [employeeId, setEmployeeId] = useState(currentUser.employeeId);
-  const [department, setDepartment] = useState(currentUser.profile.department);
-  const [designation, setDesignation] = useState(currentUser.profile.designation);
-  const [dateOfJoining, setDateOfJoining] = useState(currentUser.profile.dateOfJoining);
+  const [employeeId, setEmployeeId] = useState(currentUser.employeeId || '');
+  const [department, setDepartment] = useState(userProfile.department || '');
+  const [designation, setDesignation] = useState(userProfile.designation || '');
+  const [dateOfJoining, setDateOfJoining] = useState(userProfile.dateOfJoining || '');
 
   // New Document modal/state
   const [newDocName, setNewDocName] = useState('');
@@ -49,16 +91,19 @@ export const ProfileView: React.FC = () => {
 
   // Sync state whenever currentUser switches
   useEffect(() => {
-    setFirstName(currentUser.profile.firstName);
-    setLastName(currentUser.profile.lastName);
-    setPhone(currentUser.profile.phone || '');
-    setAddress(currentUser.profile.address || '');
-    setEmergencyContact(currentUser.profile.emergencyContact || '');
-    setSkillsStr(currentUser.profile.skills?.join(', ') || '');
-    setEmployeeId(currentUser.employeeId);
-    setDepartment(currentUser.profile.department);
-    setDesignation(currentUser.profile.designation);
-    setDateOfJoining(currentUser.profile.dateOfJoining);
+    if (currentUser) {
+      const p = currentUser.profile || userProfile;
+      setFirstName(p.firstName || '');
+      setLastName(p.lastName || '');
+      setPhone(p.phone || '');
+      setAddress(p.address || '');
+      setEmergencyContact(p.emergencyContact || '');
+      setSkillsStr(p.skills?.join(', ') || '');
+      setEmployeeId(currentUser.employeeId || '');
+      setDepartment(p.department || '');
+      setDesignation(p.designation || '');
+      setDateOfJoining(p.dateOfJoining || '');
+    }
   }, [currentUser]);
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -91,7 +136,7 @@ export const ProfileView: React.FC = () => {
   const handleAddDocument = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDocName.trim()) {
-      addToast('Validation', 'Please enter a document title', 'error');
+      addToast('Validation Error', 'Please enter a document title', 'error');
       return;
     }
 
@@ -103,7 +148,7 @@ export const ProfileView: React.FC = () => {
       uploadDate: new Date().toISOString().split('T')[0],
     };
 
-    const currentDocs = currentUser.profile.documents || [];
+    const currentDocs = userProfile.documents || [];
     updateProfile(currentUser.id, {
       documents: [newDoc, ...currentDocs],
     });
@@ -113,7 +158,7 @@ export const ProfileView: React.FC = () => {
   };
 
   const handleDeleteDoc = (docId: string) => {
-    const updated = (currentUser.profile.documents || []).filter((d) => d.id !== docId);
+    const updated = (userProfile.documents || []).filter((d) => d.id !== docId);
     updateProfile(currentUser.id, { documents: updated });
     addToast('Document Removed', 'File deleted from vault.', 'info');
   };
@@ -124,21 +169,21 @@ export const ProfileView: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4.5 z-10">
           <img
-            src={currentUser.profile.avatarUrl}
-            alt={currentUser.profile.firstName}
+            src={userProfile.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80'}
+            alt={userProfile.firstName}
             className="w-20 h-20 rounded-2xl object-cover ring-4 ring-slate-100 shadow-md"
           />
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-extrabold text-slate-900">
-                {currentUser.profile.firstName} {currentUser.profile.lastName}
+                {userProfile.firstName} {userProfile.lastName}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 font-extrabold text-[10px]">
                 {currentUser.role}
               </span>
             </div>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              {currentUser.profile.designation} • {currentUser.profile.department}
+              {userProfile.designation} • {userProfile.department}
             </p>
             <p className="text-[10px] text-slate-400 font-mono mt-1">Employee ID: {currentUser.employeeId}</p>
           </div>
@@ -197,7 +242,7 @@ export const ProfileView: React.FC = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
-          <FileCheck className="w-4 h-4" /> Verified Documents ({currentUser.profile.documents?.length || 0})
+          <FileCheck className="w-4 h-4" /> Verified Documents ({(userProfile.documents || []).length})
         </button>
       </div>
 
@@ -417,11 +462,11 @@ export const ProfileView: React.FC = () => {
                   type="text"
                   disabled
                   value={`₹${(
-                    currentUser.salary.basicSalary +
-                    currentUser.salary.hra +
-                    currentUser.salary.allowances
+                    (userSalary.basicSalary || 0) +
+                    (userSalary.hra || 0) +
+                    (userSalary.allowances || 0)
                   ).toLocaleString('en-IN')}`}
-                  className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-700 cursor-not-allowed font-bold"
+                  className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-700 cursor-not-allowed font-bold font-mono"
                 />
               </div>
 
@@ -430,7 +475,7 @@ export const ProfileView: React.FC = () => {
                 <input
                   type="text"
                   disabled
-                  value={`₹${currentUser.salary.netSalary.toLocaleString('en-IN')}`}
+                  value={`₹${(userSalary.netSalary || 0).toLocaleString('en-IN')}`}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-emerald-600 font-black cursor-not-allowed font-mono text-sm"
                 />
               </div>
@@ -440,7 +485,7 @@ export const ProfileView: React.FC = () => {
                 <input
                   type="text"
                   disabled
-                  value={currentUser.salary.bankName}
+                  value={userSalary.bankName || 'HDFC Bank'}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-600 cursor-not-allowed font-semibold"
                 />
               </div>
@@ -450,7 +495,7 @@ export const ProfileView: React.FC = () => {
                 <input
                   type="text"
                   disabled
-                  value={`${currentUser.salary.bankAccount} (${currentUser.salary.ifscCode || 'HDFC0000128'})`}
+                  value={`${userSalary.bankAccount || '•••• •••• 1234'} (${userSalary.ifscCode || 'HDFC0000128'})`}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-600 font-mono cursor-not-allowed"
                 />
               </div>
@@ -460,7 +505,7 @@ export const ProfileView: React.FC = () => {
                 <input
                   type="text"
                   disabled
-                  value={currentUser.salary.panOrTaxId || 'AAAPM1234F'}
+                  value={userSalary.panOrTaxId || 'AAAPM1234F'}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-600 font-mono cursor-not-allowed font-bold"
                 />
               </div>
@@ -470,7 +515,7 @@ export const ProfileView: React.FC = () => {
                 <input
                   type="text"
                   disabled
-                  value={currentUser.salary.uanNumber || '100982341029'}
+                  value={userSalary.uanNumber || '100982341029'}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-600 font-mono cursor-not-allowed"
                 />
               </div>
@@ -525,12 +570,12 @@ export const ProfileView: React.FC = () => {
 
             {/* Documents List */}
             <div className="space-y-3">
-              {(currentUser.profile.documents || []).length === 0 ? (
+              {(userProfile.documents || []).length === 0 ? (
                 <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                   No verified files in this profile vault yet.
                 </div>
               ) : (
-                (currentUser.profile.documents || []).map((doc) => (
+                (userProfile.documents || []).map((doc) => (
                   <div
                     key={doc.id}
                     className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 flex items-center justify-between gap-4 transition-all"
