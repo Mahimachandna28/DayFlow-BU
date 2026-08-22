@@ -746,11 +746,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         method: 'POST',
       });
       if (res.success) {
-        addToast('Demo Data Reset', 'Restored database seed records.', 'info');
+        addToast('Environment Reset', 'Restored default production seed records.', 'info');
         if (token) {
           loadAppData(token);
         } else {
-          // Switch to user-3 (Rohan Verma) demo user by default on reset
+          // Switch to user-3 (Rohan Verma) default employee profile
           const switchRes = await fetch('http://localhost:5000/api/auth/switch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -763,7 +763,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
       }
     } catch (err: any) {
-      addToast('Reset Failed', err.message || 'Failed to reset demo data', 'error');
+      addToast('Reset Failed', err.message || 'Failed to reset system records', 'error');
     }
   };
 

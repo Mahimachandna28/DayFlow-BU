@@ -56,13 +56,13 @@ export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => 
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
-      {/* 1-Click Hackathon Role Switcher Bar */}
+      {/* Enterprise Role Switcher Bar */}
       <div className="bg-slate-900 text-slate-200 px-4 py-1.5 text-xs flex flex-wrap items-center justify-between border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-brand-500/20 text-brand-300 font-semibold uppercase tracking-wider text-[10px]">
-            <Sparkles className="w-3 h-3" /> Hackathon Demo Switcher
+            <Sparkles className="w-3 h-3" /> Enterprise Role Switcher
           </span>
-          <span className="hidden md:inline text-slate-400">Quick-switch roles to test permissions & workflows:</span>
+          <span className="hidden md:inline text-slate-400">Switch corporate roles & permissions:</span>
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
@@ -314,7 +314,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => 
                     }}
                     className="w-full px-4 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2"
                   >
-                    <LogOut className="w-3.5 h-3.5" /> Reset Demo Session
+                    <LogOut className="w-3.5 h-3.5" /> Reset System State
                   </button>
                 </div>
               </div>

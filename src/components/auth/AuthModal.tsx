@@ -99,11 +99,11 @@ export const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
           </button>
         </div>
 
-        {/* Demo Fast Login Pill for Judges */}
+        {/* Fast Corporate Profile Access */}
         <div className="p-3.5 rounded-2xl bg-brand-50 border border-brand-100 space-y-2">
           <div className="flex items-center justify-between text-xs text-brand-900 font-bold">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-600" /> Hackathon 1-Click Demo Profiles
+              <Sparkles className="w-3.5 h-3.5 text-brand-600" /> Fast Login & Corporate Profiles
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
