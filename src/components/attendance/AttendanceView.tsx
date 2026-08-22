@@ -12,9 +12,11 @@ import {
   CalendarDays,
   User,
   Coffee,
+  MapPin,
+  ShieldAlert,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { AttendanceRecord, AttendanceStatus } from '../../types';
+import { AttendanceRecord, AttendanceStatus, MockLocationStatus } from '../../types';
 
 export const AttendanceView: React.FC = () => {
   const {
@@ -25,6 +27,7 @@ export const AttendanceView: React.FC = () => {
     punchIn,
     punchOut,
     toggleBreak,
+    mockLocationStatus,
   } = useApp();
 
   const isAdminOrHR = currentUser.role === 'ADMIN' || currentUser.role === 'HR_OFFICER';
@@ -40,6 +43,30 @@ export const AttendanceView: React.FC = () => {
   const [editCheckOut, setEditCheckOut] = useState('');
   const [editStatus, setEditStatus] = useState<AttendanceStatus>('PRESENT');
   const [editRemarks, setEditRemarks] = useState('');
+  const locationMeta: Record<
+    MockLocationStatus,
+    { label: string; distance: string; className: string; dotClassName: string }
+  > = {
+    office: {
+      label: 'At Office HQ',
+      distance: '0.03 km from HQ',
+      className: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+      dotClassName: 'bg-emerald-500',
+    },
+    remote: {
+      label: 'Remote / Out of Bounds',
+      distance: '5.4 km from HQ',
+      className: 'text-rose-700 bg-rose-50 border-rose-200',
+      dotClassName: 'bg-rose-500',
+    },
+    blocked: {
+      label: 'Disabled / Denied',
+      distance: 'GPS unavailable',
+      className: 'text-amber-700 bg-amber-50 border-amber-200',
+      dotClassName: 'bg-amber-500',
+    },
+  };
+  const activeLocationMeta = locationMeta[mockLocationStatus];
 
   // Format seconds to HH:MM:SS
   const formatTime = (seconds: number) => {
@@ -121,6 +148,9 @@ export const AttendanceView: React.FC = () => {
     }
   };
 
+  const hasGeoBreach = (record: AttendanceRecord) =>
+    (record.geoDistanceKm ?? 0) > 0.5 || Boolean(record.remarks?.includes('[Geo Breach]'));
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -139,7 +169,7 @@ export const AttendanceView: React.FC = () => {
 
         {/* Live Punch Widget for Employees inside Attendance View */}
         {!isAdminOrHR && (
-          <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div className="text-left">
               <span className="text-[10px] uppercase font-extrabold text-slate-400 block tracking-wider">
                 Shift Duration
@@ -147,6 +177,15 @@ export const AttendanceView: React.FC = () => {
               <span className="font-mono text-base font-bold text-slate-800">
                 {activeSession.isActive ? formatTime(activeSession.elapsedSeconds) : '00:00:00'}
               </span>
+              <div
+                className={`mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold ${activeLocationMeta.className}`}
+                title="Current mock geolocation used for the next punch-in"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${activeLocationMeta.dotClassName}`}></span>
+                <MapPin className="w-3 h-3" />
+                <span>{activeLocationMeta.label}</span>
+                <span className="font-mono opacity-80">{activeLocationMeta.distance}</span>
+              </div>
             </div>
             <div className="flex gap-2">
               {activeSession.isActive ? (
@@ -267,8 +306,17 @@ export const AttendanceView: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
+                filteredRecords.map((record) => {
+                  const isGeoBreach = hasGeoBreach(record);
+                  return (
+                  <tr
+                    key={record.id}
+                    className={`transition-colors ${
+                      isGeoBreach
+                        ? 'bg-rose-50/50 hover:bg-rose-50 border-l-4 border-l-rose-500'
+                        : 'hover:bg-slate-50/50'
+                    }`}
+                  >
                     {isAdminOrHR && (
                       <td className="p-4 pl-6 font-semibold text-slate-900">
                         <div className="flex items-center gap-2">
@@ -289,8 +337,32 @@ export const AttendanceView: React.FC = () => {
                       {record.totalHours > 0 ? `${record.totalHours.toFixed(1)} hrs` : '--'}
                     </td>
                     <td className="p-4">{getStatusBadge(record.status)}</td>
-                    <td className="p-4 text-slate-500 italic max-w-xs truncate" title={record.remarks}>
-                      {record.remarks || '--'}
+                    <td className="p-4 text-slate-500 max-w-xs" title={record.remarks}>
+                      <div className="flex flex-col gap-1.5">
+                        {isGeoBreach && (
+                          <span className="inline-flex w-fit items-center gap-1 rounded-full border border-rose-200 bg-rose-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-rose-700">
+                            <ShieldAlert className="w-3 h-3" />
+                            Geo Breach
+                          </span>
+                        )}
+                        {record.geoDistanceKm !== undefined && record.geoDistanceKm !== null && (
+                          <span
+                            className={`inline-flex w-fit items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                              isGeoBreach ? 'bg-rose-100 text-rose-700' : 'bg-emerald-50 text-emerald-700'
+                            }`}
+                          >
+                            <MapPin className="w-3 h-3" />
+                            {record.geoDistanceKm.toFixed(1)} km from HQ
+                          </span>
+                        )}
+                        {record.locationStatus === 'blocked' && (
+                          <span className="inline-flex w-fit items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                            <MapPin className="w-3 h-3" />
+                            GPS unavailable
+                          </span>
+                        )}
+                        <span className="italic truncate">{record.remarks || '--'}</span>
+                      </div>
                     </td>
                     {isAdminOrHR && (
                       <td className="p-4 pr-6 text-right">
@@ -304,7 +376,8 @@ export const AttendanceView: React.FC = () => {
                       </td>
                     )}
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

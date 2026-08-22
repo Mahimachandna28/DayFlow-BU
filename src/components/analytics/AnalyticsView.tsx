@@ -22,11 +22,13 @@ import {
   TrendingUp,
   Briefcase,
   AlertCircle,
+  ShieldAlert,
+  MapPin,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const AnalyticsView: React.FC = () => {
-  const { users, attendanceRecords, leaveRequests } = useApp();
+  const { users, attendanceRecords, leaveRequests, getAttendanceAnomalies } = useApp();
 
   // Stats Box Calculations
   const headcount = users.length;
@@ -42,6 +44,13 @@ export const AnalyticsView: React.FC = () => {
 
   // Pending leaves count
   const pendingLeaves = leaveRequests.filter((l) => l.status === 'PENDING').length;
+  const securityAlerts = getAttendanceAnomalies(attendanceRecords);
+  const anomalousRecordIds = new Set(securityAlerts.map((alert) => alert.recordId));
+  const cleanShiftScore =
+    attendanceRecords.length > 0
+      ? Math.max(0, Math.round(((attendanceRecords.length - anomalousRecordIds.size) / attendanceRecords.length) * 100))
+      : 100;
+  const criticalAlerts = securityAlerts.filter((alert) => alert.severity === 'Critical').length;
 
   // 1. Chart Data: Department Payroll Distribution
   const deptPayrollMap: { [key: string]: number } = {};
@@ -160,6 +169,98 @@ export const AnalyticsView: React.FC = () => {
           <div>
             <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Pending Leaves</span>
             <span className="block text-2xl font-black text-slate-800 mt-0.5">{pendingLeaves} Actions</span>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Security Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-[0.75fr_1.25fr] gap-6">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-rose-500" />
+                Security Anomaly Score
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-0.5">Percentage of shifts with no detected risk signals</p>
+            </div>
+            <span
+              className={`text-[10px] font-extrabold px-2 py-1 rounded-full ${
+                criticalAlerts > 0 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
+              }`}
+            >
+              {criticalAlerts} Critical
+            </span>
+          </div>
+          <div className="mt-6 flex items-end gap-3">
+            <span className="text-5xl font-black text-slate-900">{cleanShiftScore}%</span>
+            <span className="pb-2 text-xs font-bold text-slate-500">clean shifts</span>
+          </div>
+          <div className="mt-5 h-2 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${cleanShiftScore >= 80 ? 'bg-emerald-500' : cleanShiftScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
+              style={{ width: `${cleanShiftScore}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+          <div>
+            <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 text-brand-600" />
+              AI Security Feed
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              Heuristic alerts for late entries, geo breaches, short shifts, and odd-hour sign-ins
+            </p>
+          </div>
+          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+            {securityAlerts.length === 0 ? (
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-5 text-xs font-semibold text-emerald-700">
+                No attendance anomalies detected in the current dataset.
+              </div>
+            ) : (
+              securityAlerts.slice(0, 8).map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`rounded-2xl border p-3.5 ${
+                    alert.severity === 'Critical'
+                      ? 'border-rose-200 bg-rose-50'
+                      : alert.severity === 'Warning'
+                      ? 'border-amber-200 bg-amber-50'
+                      : 'border-slate-200 bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            alert.severity === 'Critical'
+                              ? 'bg-rose-100 text-rose-700'
+                              : alert.severity === 'Warning'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {alert.severity}
+                        </span>
+                        <span className="text-xs font-extrabold text-slate-900">{alert.title}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-600 leading-snug">{alert.detail}</p>
+                      <p className="mt-1 text-[10px] font-mono text-slate-400">
+                        {alert.employeeId} / {alert.date}
+                      </p>
+                    </div>
+                    {alert.title === 'Geo-fence Breach' ? (
+                      <MapPin className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                    ) : (
+                      <ShieldAlert className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

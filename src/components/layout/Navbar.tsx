@@ -11,8 +11,10 @@ import {
   Calendar,
   DollarSign,
   User as UserIcon,
+  MapPin,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { MockLocationStatus } from '../../types';
 
 export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => {
   const {
@@ -25,12 +27,24 @@ export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => 
     markAllNotificationsRead,
     resetAllData,
     setCurrentView,
+    mockLocationStatus,
+    setMockLocationStatus,
   } = useApp();
 
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const locationOptions: Array<{
+    value: MockLocationStatus;
+    label: string;
+    tone: string;
+  }> = [
+    { value: 'office', label: 'HQ Office', tone: 'text-emerald-300' },
+    { value: 'remote', label: 'Remote / Out of Bounds', tone: 'text-rose-300' },
+    { value: 'blocked', label: 'Disabled / Denied', tone: 'text-amber-300' },
+  ];
+  const activeLocation = locationOptions.find((option) => option.value === mockLocationStatus);
 
   // Format seconds to HH:MM:SS
   const formatTime = (seconds: number) => {
@@ -52,6 +66,22 @@ export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => 
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800 border border-slate-700 whitespace-nowrap">
+            <MapPin className={`w-3.5 h-3.5 ${activeLocation?.tone || 'text-slate-300'}`} />
+            <select
+              value={mockLocationStatus}
+              onChange={(e) => setMockLocationStatus(e.target.value as MockLocationStatus)}
+              className="bg-transparent text-xs text-slate-200 font-semibold focus:outline-none cursor-pointer"
+              title="Mock geolocation for punch-in testing"
+            >
+              {locationOptions.map((option) => (
+                <option key={option.value} value={option.value} className="bg-slate-900 text-slate-100">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {users.slice(0, 4).map((user) => {
             const isActive = user.id === currentUser.id;
             return (
