@@ -24,7 +24,7 @@ Dayflow is a modern, enterprise-grade Human Resource Management System (HRMS) bu
 
 ---
 
-## 👥 2-Person Work Division
+## 👥 2-Person Work Division Roles
 
 | Developer | Role & Responsibilities |
 | :--- | :--- |
