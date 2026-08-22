@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(uuid())
+  employeeId      String           @unique
+  email           String           @unique
+  passwordHash    String
+  role            String           // "ADMIN" | "HR_OFFICER" | "EMPLOYEE"
+  isVerified      Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  profile         Profile?
+  salary          SalaryStructure?
+  attendance      AttendanceRecord[]
+  leaves          LeaveRequest[]
+  activeSession   ActiveSession?
+}
+
+model Profile {
+  id               String      @id @default(uuid())
+  userId           String      @unique
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName        String
+  lastName         String
+  phone            String
+  address          String
+  avatarUrl        String
+  department       String
+  designation      String
+  dateOfJoining    String
+  emergencyContact String?
+  skills           String?     // Comma-separated list of skills, e.g. "React,TypeScript"
+  documents        Document[]
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  type        String
+  size        String
+  uploadDate  String
+  url         String?
+}
+
+model SalaryStructure {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  basicSalary   Float
+  hra           Float
+  allowances    Float
+  deductions    Float
+  netSalary     Float
+  currency      String   @default("INR")
+  effectiveFrom String
+  bankAccount   String
+  bankName      String
+  ifscCode      String?
+  panOrTaxId    String
+  uanNumber     String?
+}
+
+model AttendanceRecord {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeName      String
+  employeeId        String
+  department        String
+  date              String   // YYYY-MM-DD
+  checkIn           String?  // e.g. "09:15 AM"
+  checkOut          String?  // e.g. "06:30 PM"
+  totalHours        Float
+  status            String   // "PRESENT" | "ABSENT" | "HALF_DAY" | "LEAVE"
+  remarks           String?
+  locationStatus    String?  // "office" | "remote" | "blocked"
+  geoDistanceKm     Float?
+  geoLabel          String?
+  deviceFingerprint String?
+  ipAddress         String?
+}
+
+model LeaveRequest {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeName String
+  employeeId   String
+  department   String
+  avatarUrl    String
+  leaveType    String   // "PAID" | "SICK" | "UNPAID"
+  startDate    String   // YYYY-MM-DD
+  endDate      String   // YYYY-MM-DD
+  totalDays    Int
+  reason       String
+  status       String   // "PENDING" | "APPROVED" | "REJECTED"
+  adminRemarks String?
+  reviewedBy   String?
+  createdAt    String   // YYYY-MM-DD
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?  // nullable for global notifications, or specific user ID
+  title     String
+  message   String
+  type      String   // "leave" | "attendance" | "payroll" | "system"
+  timestamp String   // e.g. "2 hours ago" or date string
+  read      Boolean  @default(false)
+}
+
+model ActiveSession {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive          Boolean  @default(false)
+  startTime         String?  // String representation of timestamp or milliseconds
+  elapsedSeconds    Int      @default(0)
+  isOnBreak         Boolean  @default(false)
+  breakStartTime    String?
+  totalBreakSeconds Int      @default(0)
+  locationStatus    String?  // "office" | "remote" | "blocked"
+  geoDistanceKm     Float?
+}

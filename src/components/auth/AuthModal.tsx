@@ -36,14 +36,14 @@ export const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
 
   if (!isOpen) return null;
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!email || !password) {
       setError('Please provide both email / Employee ID and password.');
       return;
     }
-    const success = login(email, role);
+    const success = await login(email, role);
     if (success) {
       onClose();
     } else {
@@ -51,7 +51,7 @@ export const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
     }
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -61,7 +61,7 @@ export const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       return;
     }
 
-    const success = register({
+    const success = await register({
       employeeId: employeeId || `EMP-${Math.floor(100 + Math.random() * 900)}`,
       email,
       firstName,
