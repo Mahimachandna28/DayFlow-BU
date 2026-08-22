@@ -16,7 +16,7 @@ export async function getAllUsers(req: AuthRequest, res: Response) {
     });
 
     // Formats users response data
-    const formatted = users.map((u) => ({
+    const formatted = users.map((u: any) => ({
       id: u.id,
       employeeId: u.employeeId,
       email: u.email,
