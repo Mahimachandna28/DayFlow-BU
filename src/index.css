@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-brand-500 selection:text-white min-h-screen;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  }
+}
+
+@layer components {
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider;
+  }
+  
+  .badge-present {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+  
+  .badge-absent {
+    @apply bg-rose-50 text-rose-700 border border-rose-200;
+  }
+  
+  .badge-half-day {
+    @apply bg-amber-50 text-amber-700 border border-amber-200;
+  }
+  
+  .badge-leave {
+    @apply bg-purple-50 text-purple-700 border border-purple-200;
+  }
+
+  .badge-pending {
+    @apply bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  .badge-approved {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .badge-rejected {
+    @apply bg-rose-50 text-rose-700 border border-rose-200;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:border-slate-300;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] disabled:opacity-50;
+  }
+}
