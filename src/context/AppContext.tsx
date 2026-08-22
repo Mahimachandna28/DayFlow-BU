@@ -43,7 +43,7 @@ interface AppContextType {
   getAttendanceAnomalies: (records?: AttendanceRecord[]) => SecurityAlert[];
   // Auth & Demo switcher
   switchUser: (userId: string) => void;
-  login: (emailOrEmpId: string, role?: Role) => boolean;
+  login: (emailOrEmpId: string, role?: Role) => Promise<boolean>;
   register: (userData: {
     employeeId: string;
     email: string;
@@ -52,7 +52,7 @@ interface AppContextType {
     role: Role;
     department: string;
     designation: string;
-  }) => boolean;
+  }) => Promise<boolean>;
   logout: () => void;
   // Attendance actions
   punchIn: () => void;
@@ -200,45 +200,29 @@ export const getAttendanceAnomalies = (records: AttendanceRecord[] = []): Securi
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Load state from localStorage or mock defaults
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.USERS);
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('dayflow_auth_token');
   });
 
+  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID);
-    return saved || INITIAL_USERS[2].id; // Default to Liam Chen (Employee) for rich experience
+    return saved || INITIAL_USERS[2].id; // Default to Liam Chen
   });
 
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.ATTENDANCE);
-    return saved ? JSON.parse(saved) : INITIAL_ATTENDANCE;
-  });
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(INITIAL_LEAVES);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.LEAVES);
-    return saved ? JSON.parse(saved) : INITIAL_LEAVES;
-  });
-
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
-  });
-
-  const [activeSession, setActiveSession] = useState<ActiveWorkSession>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SESSION);
-    return saved
-      ? JSON.parse(saved)
-      : {
-          isActive: true,
-          startTime: Date.now() - 4 * 3600 * 1000, // 4 hours ago for demo
-          elapsedSeconds: 14400,
-          isOnBreak: false,
-          breakStartTime: null,
-          totalBreakSeconds: 0,
-          locationStatus: 'office',
-          geoDistanceKm: 0.03,
-        };
+  const [activeSession, setActiveSession] = useState<ActiveWorkSession>({
+    isActive: true,
+    startTime: Date.now() - 4 * 3600 * 1000, // 4 hours ago for demo
+    elapsedSeconds: 14400,
+    isOnBreak: false,
+    breakStartTime: null,
+    totalBreakSeconds: 0,
+    locationStatus: 'office',
+    geoDistanceKm: 0.03,
   });
 
   const [mockLocationStatus, setMockLocationStatusState] = useState<MockLocationStatus>(() => {
@@ -249,30 +233,66 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Persist state changes to LocalStorage
+  // API Fetch Helper
+  const apiFetch = async (path: string, options: RequestInit = {}) => {
+    const currentToken = localStorage.getItem('dayflow_auth_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {}),
+      ...(options.headers || {}),
+    };
+    const response = await fetch(`http://localhost:5000${path}`, {
+      ...options,
+      headers,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'API request failed');
+    }
+    return data;
+  };
+
+  // Application Data Loader
+  const loadAppData = async (currentToken: string) => {
+    try {
+      const headers = { 'Authorization': `Bearer ${currentToken}` };
+      
+      const meRes = await fetch('http://localhost:5000/api/auth/me', { headers }).then(r => r.json());
+      if (meRes.success) {
+        setCurrentUserId(meRes.user.id);
+      } else {
+        throw new Error(meRes.message);
+      }
+
+      const [usersRes, attendanceRes, leavesRes, notifsRes, sessionRes] = await Promise.all([
+        fetch('http://localhost:5000/api/users', { headers }).then(r => r.json()),
+        fetch('http://localhost:5000/api/attendance', { headers }).then(r => r.json()),
+        fetch('http://localhost:5000/api/leaves', { headers }).then(r => r.json()),
+        fetch('http://localhost:5000/api/notifications', { headers }).then(r => r.json()),
+        fetch('http://localhost:5000/api/attendance/session', { headers }).then(r => r.json()),
+      ]);
+
+      if (usersRes.success) setUsers(usersRes.users);
+      if (attendanceRes.success) setAttendanceRecords(attendanceRes.records);
+      if (leavesRes.success) setLeaveRequests(leavesRes.leaves);
+      if (notifsRes.success) setNotifications(notifsRes.notifications);
+      if (sessionRes.success) setActiveSession(sessionRes.session);
+    } catch (err: any) {
+      console.error('Failed to load application data:', err);
+      setToken(null);
+      localStorage.removeItem('dayflow_auth_token');
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-  }, [users]);
+    if (token) {
+      loadAppData(token);
+    }
+  }, [token]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, currentUserId);
   }, [currentUserId]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(attendanceRecords));
-  }, [attendanceRecords]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(leaveRequests));
-  }, [leaveRequests]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications));
-  }, [notifications]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(activeSession));
-  }, [activeSession]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MOCK_LOCATION, mockLocationStatus);
@@ -314,38 +334,41 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Auth / Switcher
-  const switchUser = (userId: string) => {
-    const target = users.find((u) => u.id === userId);
-    if (target) {
-      setCurrentUserId(userId);
-      addToast('Switched Profile', `Now viewing Dayflow as ${target.profile.firstName} (${target.role})`, 'info');
+  const switchUser = async (userId: string) => {
+    try {
+      const res = await apiFetch('/api/auth/switch', {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      });
+      if (res.success) {
+        setToken(res.token);
+        localStorage.setItem('dayflow_auth_token', res.token);
+        addToast('Switched Profile', `Now viewing Dayflow as ${res.user.profile.firstName} (${res.user.role})`, 'info');
+      }
+    } catch (err: any) {
+      addToast('Profile Switch Failed', err.message || 'Failed to switch profile', 'error');
     }
   };
 
-  const login = (emailOrEmpId: string, role?: Role): boolean => {
-    const query = emailOrEmpId.trim().toLowerCase();
-    const user = users.find(
-      (u) => u.email.toLowerCase() === query || u.employeeId.toLowerCase() === query
-    );
-    if (user) {
-      setCurrentUserId(user.id);
-      addToast('Welcome Back', `Logged in as ${user.profile.firstName} ${user.profile.lastName}`);
-      return true;
-    }
-    // Fallback: If not found, create or select first with matching role
-    if (role) {
-      const matchRole = users.find((u) => u.role === role);
-      if (matchRole) {
-        setCurrentUserId(matchRole.id);
-        addToast('Welcome Back', `Logged in as ${matchRole.profile.firstName} (${matchRole.role})`);
+  const login = async (emailOrEmpId: string, role?: Role): Promise<boolean> => {
+    try {
+      const res = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ emailOrEmpId, password: 'password123' }), // Seeded users password
+      });
+      if (res.success) {
+        setToken(res.token);
+        localStorage.setItem('dayflow_auth_token', res.token);
+        addToast('Welcome Back', `Logged in as ${res.user.profile.firstName} ${res.user.profile.lastName}`);
         return true;
       }
+    } catch (err: any) {
+      addToast('Login Failed', err.message || 'Invalid credentials or employee ID', 'error');
     }
-    addToast('Login Failed', 'Invalid credentials or employee ID', 'error');
     return false;
   };
 
-  const register = (userData: {
+  const register = async (userData: {
     employeeId: string;
     email: string;
     firstName: string;
@@ -353,342 +376,263 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     role: Role;
     department: string;
     designation: string;
-  }): boolean => {
-    const id = `user-${Date.now()}`;
-    const newUser: User = {
-      id,
-      employeeId: userData.employeeId || `EMP-${100 + users.length}`,
-      email: userData.email,
-      role: userData.role,
-      isVerified: true,
-      profile: {
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        phone: '+91 98765 43210',
-        address: '100ft Road, Indiranagar, Bengaluru, Karnataka 560038',
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.firstName}`,
-        department: userData.department || 'Engineering',
-        designation: userData.designation || 'Specialist',
-        dateOfJoining: new Date().toISOString().split('T')[0],
-        employeeId: userData.employeeId || `EMP-${100 + users.length}`,
-        email: userData.email,
-        documents: [],
-      },
-      salary: {
-        basicSalary: 60000,
-        hra: 28000,
-        allowances: 18000,
-        deductions: 14000,
-        netSalary: 92000,
-        currency: 'INR',
-        effectiveFrom: new Date().toISOString().split('T')[0],
-        bankAccount: '•••• •••• 1234',
-        bankName: 'HDFC Bank (Bengaluru)',
-        ifscCode: 'HDFC0000128',
-        panOrTaxId: `AAAPM${Math.floor(1000 + Math.random() * 9000)}F`,
-        uanNumber: `100${Math.floor(100000000 + Math.random() * 900000000)}`,
-      },
-    };
-
-    setUsers((prev) => [...prev, newUser]);
-    setCurrentUserId(id);
-    addToast('Account Created', `Welcome to Dayflow, ${userData.firstName}!`);
-    return true;
+  }): Promise<boolean> => {
+    try {
+      const res = await apiFetch('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...userData,
+          password: 'password123', // default registration password
+        }),
+      });
+      if (res.success) {
+        setToken(res.token);
+        localStorage.setItem('dayflow_auth_token', res.token);
+        addToast('Account Created', `Welcome to Dayflow, ${userData.firstName}!`);
+        return true;
+      }
+    } catch (err: any) {
+      addToast('Registration Failed', err.message || 'Failed to register account', 'error');
+    }
+    return false;
   };
 
   const logout = () => {
+    setToken(null);
+    localStorage.removeItem('dayflow_auth_token');
     addToast('Logged Out', 'You have been signed out successfully.', 'info');
   };
 
   // Attendance Workflows
-  const punchIn = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const todayStr = now.toISOString().split('T')[0];
-    const geoProfile = GEO_PROFILES[mockLocationStatus];
-    const isRemote = mockLocationStatus === 'remote';
-    const isBlocked = mockLocationStatus === 'blocked';
-    const locationRemarks =
-      mockLocationStatus === 'office'
-        ? geoProfile.remarks
-        : `${geoProfile.remarks}${isRemote ? '' : ' - punch logged for HR review'}`;
-
-    setActiveSession({
-      isActive: true,
-      startTime: Date.now(),
-      elapsedSeconds: 0,
-      isOnBreak: false,
-      breakStartTime: null,
-      totalBreakSeconds: 0,
-      locationStatus: mockLocationStatus,
-      geoDistanceKm: geoProfile.distanceKm,
-    });
-
-    // Check if record exists for today
-    setAttendanceRecords((prev) => {
-      const existing = prev.find((r) => r.userId === currentUser.id && r.date === todayStr);
-      if (existing) {
-        return prev.map((r) =>
-          r.id === existing.id
-            ? {
-                ...r,
-                checkIn: timeStr,
-                status: 'PRESENT' as const,
-                remarks: locationRemarks,
-                locationStatus: mockLocationStatus,
-                geoDistanceKm: geoProfile.distanceKm,
-                geoLabel: geoProfile.label,
-              }
-            : r
-        );
-      } else {
-        const newRecord: AttendanceRecord = {
-          id: `att-${Date.now()}`,
-          userId: currentUser.id,
-          employeeName: `${currentUser.profile.firstName} ${currentUser.profile.lastName}`,
-          employeeId: currentUser.employeeId,
-          department: currentUser.profile.department,
-          date: todayStr,
-          checkIn: timeStr,
-          checkOut: null,
-          totalHours: 0.1,
-          status: 'PRESENT',
-          remarks: locationRemarks,
-          locationStatus: mockLocationStatus,
-          geoDistanceKm: geoProfile.distanceKm,
-          geoLabel: geoProfile.label,
-        };
-        return [newRecord, ...prev];
-      }
-    });
-
-    if (isRemote) {
-      addToast(
-        'Geo-fence Warning',
-        `Warning: Punching from outside company perimeter (${geoProfile.distanceKm?.toFixed(1)}km).`,
-        'warning'
-      );
-    } else if (isBlocked) {
-      addToast(
-        'GPS Warning',
-        'Punch logged, but location permission or sensor data was unavailable.',
-        'warning'
-      );
-    } else {
-      addToast('Punched In', `Clock started at ${timeStr}. Have a productive day!`);
-    }
-  };
-
-  const punchOut = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const todayStr = now.toISOString().split('T')[0];
-    const totalHours = Number((activeSession.elapsedSeconds / 3600).toFixed(2));
-
-    setActiveSession({
-      isActive: false,
-      startTime: null,
-      elapsedSeconds: 0,
-      isOnBreak: false,
-      breakStartTime: null,
-      totalBreakSeconds: 0,
-      locationStatus: activeSession.locationStatus,
-      geoDistanceKm: activeSession.geoDistanceKm,
-    });
-
-    setAttendanceRecords((prev) => {
-      return prev.map((r) => {
-        if (r.userId === currentUser.id && r.date === todayStr) {
-          const status = totalHours < 4.0 ? ('HALF_DAY' as const) : ('PRESENT' as const);
-          return {
-            ...r,
-            checkOut: timeStr,
-            totalHours: totalHours || 8.0,
-            status,
-          };
-        }
-        return r;
+  const punchIn = async () => {
+    try {
+      const res = await apiFetch('/api/attendance/punch-in', {
+        method: 'POST',
+        body: JSON.stringify({ locationStatus: mockLocationStatus }),
       });
-    });
+      if (res.success) {
+        setActiveSession(res.session);
+        setAttendanceRecords((prev) => {
+          const exists = prev.some((r) => r.id === res.record.id);
+          return exists ? prev.map((r) => (r.id === res.record.id ? res.record : r)) : [res.record, ...prev];
+        });
 
-    addToast('Punched Out', `Clock stopped at ${timeStr}. Total time: ${totalHours} hrs.`);
-  };
-
-  const toggleBreak = () => {
-    if (!activeSession.isActive) return;
-    if (activeSession.isOnBreak) {
-      // End break
-      setActiveSession((prev) => ({
-        ...prev,
-        isOnBreak: false,
-        breakStartTime: null,
-      }));
-      addToast('Break Ended', 'Resumed active work session.', 'info');
-    } else {
-      // Start break
-      setActiveSession((prev) => ({
-        ...prev,
-        isOnBreak: true,
-        breakStartTime: Date.now(),
-      }));
-      addToast('On Break', 'Clock is paused during your break.', 'warning');
+        const geoProfile = GEO_PROFILES[mockLocationStatus];
+        if (mockLocationStatus === 'remote') {
+          addToast('Geo-fence Warning', `Warning: Punching from outside company perimeter.`, 'warning');
+        } else if (mockLocationStatus === 'blocked') {
+          addToast('GPS Warning', 'Punch logged, but location sensor was unavailable.', 'warning');
+        } else {
+          addToast('Punched In', `Clock started. Have a productive day!`);
+        }
+      }
+    } catch (err: any) {
+      addToast('Punch In Failed', err.message || 'Error occurred during punch in', 'error');
     }
   };
 
-  const updateAttendanceRecord = (recordId: string, updates: Partial<AttendanceRecord>) => {
-    setAttendanceRecords((prev) =>
-      prev.map((r) => (r.id === recordId ? { ...r, ...updates } : r))
-    );
-    addToast('Attendance Updated', 'Record updated successfully.');
+  const punchOut = async () => {
+    try {
+      // Sync timer before punch out
+      await apiFetch('/api/attendance/sync-timer', {
+        method: 'POST',
+        body: JSON.stringify({ elapsedSeconds: activeSession.elapsedSeconds }),
+      });
+
+      const res = await apiFetch('/api/attendance/punch-out', {
+        method: 'POST',
+      });
+      if (res.success) {
+        setActiveSession(res.session);
+        setAttendanceRecords((prev) => prev.map((r) => (r.id === res.record.id ? res.record : r)));
+        addToast('Punched Out', `Clock stopped. Total time: ${res.record.totalHours} hrs.`);
+      }
+    } catch (err: any) {
+      addToast('Punch Out Failed', err.message || 'Error occurred during punch out', 'error');
+    }
+  };
+
+  const toggleBreak = async () => {
+    try {
+      // Sync timer before break toggle
+      await apiFetch('/api/attendance/sync-timer', {
+        method: 'POST',
+        body: JSON.stringify({ elapsedSeconds: activeSession.elapsedSeconds }),
+      });
+
+      const res = await apiFetch('/api/attendance/toggle-break', {
+        method: 'POST',
+      });
+      if (res.success) {
+        setActiveSession(res.session);
+        if (res.session.isOnBreak) {
+          addToast('On Break', 'Clock is paused during your break.', 'warning');
+        } else {
+          addToast('Break Ended', 'Resumed active work session.', 'info');
+        }
+      }
+    } catch (err: any) {
+      addToast('Toggle Break Failed', err.message || 'Error occurred during break toggle', 'error');
+    }
+  };
+
+  const updateAttendanceRecord = async (recordId: string, updates: Partial<AttendanceRecord>) => {
+    try {
+      const res = await apiFetch(`/api/attendance/${recordId}/override`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+      if (res.success) {
+        setAttendanceRecords((prev) => prev.map((r) => (r.id === recordId ? res.record : r)));
+        addToast('Attendance Updated', 'Record updated successfully.');
+      }
+    } catch (err: any) {
+      addToast('Attendance Update Failed', err.message || 'Failed to update attendance', 'error');
+    }
   };
 
   // Leave Workflows
-  const applyLeave = (data: {
+  const applyLeave = async (data: {
     leaveType: LeaveType;
     startDate: string;
     endDate: string;
     totalDays: number;
     reason: string;
   }) => {
-    const newLeave: LeaveRequest = {
-      id: `leave-${Date.now()}`,
-      userId: currentUser.id,
-      employeeName: `${currentUser.profile.firstName} ${currentUser.profile.lastName}`,
-      employeeId: currentUser.employeeId,
-      department: currentUser.profile.department,
-      avatarUrl: currentUser.profile.avatarUrl,
-      leaveType: data.leaveType,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      totalDays: data.totalDays,
-      reason: data.reason,
-      status: 'PENDING',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
+    try {
+      const res = await apiFetch('/api/leaves/apply', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (res.success) {
+        setLeaveRequests((prev) => [res.leave, ...prev]);
 
-    setLeaveRequests((prev) => [newLeave, ...prev]);
+        // Refresh notifications
+        const notifsRes = await apiFetch('/api/notifications');
+        if (notifsRes.success) setNotifications(notifsRes.notifications);
 
-    // Send notification to Admin
-    const notif: NotificationItem = {
-      id: `notif-${Date.now()}`,
-      title: 'New Leave Application',
-      message: `${currentUser.profile.firstName} applied for ${data.totalDays} day(s) of ${data.leaveType} leave.`,
-      type: 'leave',
-      timestamp: 'Just now',
-      read: false,
-    };
-    setNotifications((prev) => [notif, ...prev]);
-
-    addToast('Leave Applied', `Request submitted for ${data.totalDays} day(s). Status: PENDING.`);
+        addToast('Leave Applied', `Request submitted for ${data.totalDays} day(s). Status: PENDING.`);
+      }
+    } catch (err: any) {
+      addToast('Leave Request Failed', err.message || 'Failed to apply leave', 'error');
+    }
   };
 
-  const reviewLeave = (leaveId: string, status: LeaveStatus, adminRemarks?: string) => {
-    setLeaveRequests((prev) =>
-      prev.map((l) => {
-        if (l.id === leaveId) {
-          return {
-            ...l,
-            status,
-            adminRemarks: adminRemarks || (status === 'APPROVED' ? 'Approved by HR' : 'Declined by HR'),
-            reviewedBy: `${currentUser.profile.firstName} (${currentUser.role})`,
-          };
-        }
-        return l;
-      })
-    );
+  const reviewLeave = async (leaveId: string, status: LeaveStatus, adminRemarks?: string) => {
+    try {
+      const res = await apiFetch(`/api/leaves/${leaveId}/review`, {
+        method: 'POST',
+        body: JSON.stringify({ status, adminRemarks }),
+      });
+      if (res.success) {
+        setLeaveRequests((prev) => prev.map((l) => (l.id === leaveId ? res.leave : l)));
 
-    if (status === 'APPROVED') {
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      } catch (e) {
-        // Safe fallback
+        // Refresh notifications
+        const notifsRes = await apiFetch('/api/notifications');
+        if (notifsRes.success) setNotifications(notifsRes.notifications);
+
+        if (status === 'APPROVED') {
+          try {
+            confetti({
+              particleCount: 80,
+              spread: 70,
+              origin: { y: 0.6 },
+            });
+          } catch (e) {}
+          addToast('Leave Approved', 'The leave request has been approved and records updated.');
+        } else {
+          addToast('Leave Rejected', 'The leave request has been declined.', 'warning');
+        }
       }
-      addToast('Leave Approved', 'The leave request has been approved and records updated.');
-    } else {
-      addToast('Leave Rejected', 'The leave request has been declined.', 'warning');
+    } catch (err: any) {
+      addToast('Leave Review Failed', err.message || 'Failed to review leave', 'error');
     }
   };
 
   // Profile & Payroll
-  const updateProfile = (userId: string, updates: Partial<Profile>) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          return {
-            ...u,
-            profile: {
-              ...u.profile,
-              ...updates,
-            },
-          };
-        }
-        return u;
-      })
-    );
-    addToast('Profile Updated', 'Changes have been saved successfully.');
+  const updateProfile = async (userId: string, updates: Partial<Profile>) => {
+    try {
+      const res = await apiFetch(`/api/users/${userId}/profile`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+      if (res.success) {
+        setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, profile: res.profile } : u)));
+        addToast('Profile Updated', 'Changes have been saved successfully.');
+      }
+    } catch (err: any) {
+      addToast('Profile Update Failed', err.message || 'Failed to update profile', 'error');
+    }
   };
 
-  const updateSalary = (userId: string, updates: Partial<SalaryStructure>) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const currentSalary = u.salary;
-          const basic = updates.basicSalary ?? currentSalary.basicSalary;
-          const hra = updates.hra ?? currentSalary.hra;
-          const allowances = updates.allowances ?? currentSalary.allowances;
-          const deductions = updates.deductions ?? currentSalary.deductions;
-          const netSalary = basic + hra + allowances - deductions;
-
-          return {
-            ...u,
-            salary: {
-              ...currentSalary,
-              ...updates,
-              netSalary,
-            },
-          };
-        }
-        return u;
-      })
-    );
-    addToast('Salary Structure Updated', 'New compensation details are now in effect.');
+  const updateSalary = async (userId: string, updates: Partial<SalaryStructure>) => {
+    try {
+      const res = await apiFetch(`/api/users/${userId}/salary`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+      if (res.success) {
+        setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, salary: res.salary } : u)));
+        addToast('Salary Structure Updated', 'New compensation details are now in effect.');
+      }
+    } catch (err: any) {
+      addToast('Salary Update Failed', err.message || 'Failed to update salary', 'error');
+    }
   };
 
   // Notifications
-  const markNotificationRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const markNotificationRead = async (id: string) => {
+    try {
+      const res = await apiFetch(`/api/notifications/${id}/read`, {
+        method: 'PUT',
+      });
+      if (res.success) {
+        setNotifications((prev) => prev.map((n) => (n.id === id ? res.notification : n)));
+      }
+    } catch (err: any) {
+      console.error('Failed to mark notification read:', err);
+    }
   };
 
-  const markAllNotificationsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    addToast('Notifications Cleared', 'All marked as read.', 'info');
+  const markAllNotificationsRead = async () => {
+    try {
+      const res = await apiFetch('/api/notifications/read-all', {
+        method: 'PUT',
+      });
+      if (res.success) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        addToast('Notifications Cleared', 'All marked as read.', 'info');
+      }
+    } catch (err: any) {
+      addToast('Failed to clear notifications', err.message || 'API request failed', 'error');
+    }
   };
 
-  const resetAllData = () => {
-    localStorage.clear();
-    setUsers(INITIAL_USERS);
-    setCurrentUserId(INITIAL_USERS[2].id);
-    setAttendanceRecords(INITIAL_ATTENDANCE);
-    setLeaveRequests(INITIAL_LEAVES);
-    setNotifications(INITIAL_NOTIFICATIONS);
-    setMockLocationStatusState('office');
-    setActiveSession({
-      isActive: true,
-      startTime: Date.now() - 4 * 3600 * 1000,
-      elapsedSeconds: 14400,
-      isOnBreak: false,
-      breakStartTime: null,
-      totalBreakSeconds: 0,
-      locationStatus: 'office',
-      geoDistanceKm: 0.03,
-    });
-    addToast('Demo Data Reset', 'Restored pristine demo state for live pitch.', 'info');
+  const resetAllData = async () => {
+    try {
+      const res = await apiFetch('/api/reset', {
+        method: 'POST',
+      });
+      if (res.success) {
+        addToast('Demo Data Reset', 'Restored database seed records.', 'info');
+        if (token) {
+          loadAppData(token);
+        } else {
+          // Switch to user-3 (Rohan Verma) demo user by default on reset
+          const switchRes = await fetch('http://localhost:5000/api/auth/switch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: 'user-3' }),
+          }).then((r) => r.json());
+          if (switchRes.success) {
+            setToken(switchRes.token);
+            localStorage.setItem('dayflow_auth_token', switchRes.token);
+          }
+        }
+      }
+    } catch (err: any) {
+      addToast('Reset Failed', err.message || 'Failed to reset demo data', 'error');
+    }
   };
 
   return (
