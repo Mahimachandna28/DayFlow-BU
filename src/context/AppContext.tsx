@@ -82,13 +82,13 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  USERS: 'dayflow_users_v1',
-  CURRENT_USER_ID: 'dayflow_current_user_id_v1',
-  ATTENDANCE: 'dayflow_attendance_v1',
-  LEAVES: 'dayflow_leaves_v1',
-  NOTIFICATIONS: 'dayflow_notifs_v1',
-  SESSION: 'dayflow_session_v1',
-  MOCK_LOCATION: 'dayflow_mock_location_v1',
+  USERS: 'dayflow_users_in_v2',
+  CURRENT_USER_ID: 'dayflow_current_user_id_in_v2',
+  ATTENDANCE: 'dayflow_attendance_in_v2',
+  LEAVES: 'dayflow_leaves_in_v2',
+  NOTIFICATIONS: 'dayflow_notifs_in_v2',
+  SESSION: 'dayflow_session_in_v2',
+  MOCK_LOCATION: 'dayflow_mock_location_in_v2',
 };
 
 const GEO_PROFILES: Record<
@@ -364,8 +364,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       profile: {
         firstName: userData.firstName,
         lastName: userData.lastName,
-        phone: '+1 (555) 000-1122',
-        address: '100 Tech Blvd, Innovation City',
+        phone: '+91 98765 43210',
+        address: '100ft Road, Indiranagar, Bengaluru, Karnataka 560038',
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.firstName}`,
         department: userData.department || 'Engineering',
         designation: userData.designation || 'Specialist',
@@ -375,16 +375,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         documents: [],
       },
       salary: {
-        basicSalary: 5500,
-        hra: 2200,
-        allowances: 1200,
-        deductions: 1100,
-        netSalary: 7800,
-        currency: 'USD',
+        basicSalary: 60000,
+        hra: 28000,
+        allowances: 18000,
+        deductions: 14000,
+        netSalary: 92000,
+        currency: 'INR',
         effectiveFrom: new Date().toISOString().split('T')[0],
-        bankAccount: '•••• •••• •••• 1234',
-        bankName: 'Global City Bank',
-        panOrTaxId: `US-TX-${Math.floor(1000000 + Math.random() * 9000000)}`,
+        bankAccount: '•••• •••• 1234',
+        bankName: 'HDFC Bank (Bengaluru)',
+        ifscCode: 'HDFC0000128',
+        panOrTaxId: `AAAPM${Math.floor(1000 + Math.random() * 9000)}F`,
+        uanNumber: `100${Math.floor(100000000 + Math.random() * 900000000)}`,
       },
     };
 

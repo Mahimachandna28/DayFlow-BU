@@ -325,16 +325,16 @@ export const PayrollView: React.FC = () => {
                         ) : (
                           <>
                             <td className="p-4 font-mono font-semibold text-slate-700">
-                              ${user.salary.basicSalary.toLocaleString()}
+                              ₹{user.salary.basicSalary.toLocaleString('en-IN')}
                             </td>
                             <td className="p-4 font-mono text-slate-500">
-                              ${(user.salary.hra + user.salary.allowances).toLocaleString()}
+                              ₹{(user.salary.hra + user.salary.allowances).toLocaleString('en-IN')}
                             </td>
                             <td className="p-4 font-mono text-rose-500">
-                              -${user.salary.deductions.toLocaleString()}
+                              -₹{user.salary.deductions.toLocaleString('en-IN')}
                             </td>
                             <td className="p-4 font-mono font-extrabold text-emerald-600">
-                              ${user.salary.netSalary.toLocaleString()}
+                              ₹{user.salary.netSalary.toLocaleString('en-IN')}
                             </td>
                           </>
                         )}
@@ -385,7 +385,7 @@ export const PayrollView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left panel: Breakdown Cards */}
           <div className="lg:col-span-2 space-y-5">
-            <h3 className="font-extrabold text-slate-900 text-sm">Compensation Structure Breakdown</h3>
+            <h3 className="font-extrabold text-slate-900 text-sm">Monthly Compensation Breakdown</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm relative overflow-hidden flex items-start gap-4">
@@ -393,8 +393,8 @@ export const PayrollView: React.FC = () => {
                   <Coins className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Basic Earnings</span>
-                  <span className="block text-xl font-extrabold text-slate-800 mt-1">${basic.toLocaleString()} USD</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Basic Salary</span>
+                  <span className="block text-xl font-extrabold text-slate-800 mt-1">₹{basic.toLocaleString('en-IN')}</span>
                   <p className="text-[10px] text-slate-500 mt-1">Core contractual monthly base pay</p>
                 </div>
               </div>
@@ -405,7 +405,7 @@ export const PayrollView: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Rent Allowance (HRA)</span>
-                  <span className="block text-xl font-extrabold text-slate-800 mt-1">${hra.toLocaleString()} USD</span>
+                  <span className="block text-xl font-extrabold text-slate-800 mt-1">₹{hra.toLocaleString('en-IN')}</span>
                   <p className="text-[10px] text-slate-500 mt-1">Tax-exempt housing rent support</p>
                 </div>
               </div>
@@ -415,9 +415,9 @@ export const PayrollView: React.FC = () => {
                   <PiggyBank className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Other Allowances</span>
-                  <span className="block text-xl font-extrabold text-slate-800 mt-1">${allowances.toLocaleString()} USD</span>
-                  <p className="text-[10px] text-slate-500 mt-1">Special travel, health, and phone credits</p>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Special Allowances</span>
+                  <span className="block text-xl font-extrabold text-slate-800 mt-1">₹{allowances.toLocaleString('en-IN')}</span>
+                  <p className="text-[10px] text-slate-500 mt-1">Dearness, travel, and mobile reimbursement</p>
                 </div>
               </div>
 
@@ -426,9 +426,9 @@ export const PayrollView: React.FC = () => {
                   <Percent className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tax & Deductions</span>
-                  <span className="block text-xl font-extrabold text-rose-600 mt-1">-${deductions.toLocaleString()} USD</span>
-                  <p className="text-[10px] text-slate-500 mt-1">Income tax (TDS) & social security deductions</p>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Statutory Deductions</span>
+                  <span className="block text-xl font-extrabold text-rose-600 mt-1">-₹{deductions.toLocaleString('en-IN')}</span>
+                  <p className="text-[10px] text-slate-500 mt-1">EPF (12%), Professional Tax & TDS</p>
                 </div>
               </div>
             </div>
@@ -438,7 +438,7 @@ export const PayrollView: React.FC = () => {
               <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Gross vs. Net Ratio</h4>
               <div className="relative pt-1">
                 <div className="flex mb-2 items-center justify-between text-xs font-semibold">
-                  <span className="text-slate-500">Gross Income: ${gross.toLocaleString()}</span>
+                  <span className="text-slate-500">Gross Income: ₹{gross.toLocaleString('en-IN')}</span>
                   <span className="text-brand-600">Net Take-Home: {((net / gross) * 100).toFixed(0)}%</span>
                 </div>
                 <div className="overflow-hidden h-3 rounded-full bg-slate-200 flex">
@@ -452,8 +452,8 @@ export const PayrollView: React.FC = () => {
                   />
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-slate-400 mt-2 font-medium">
-                  <span>Take Home (${net.toLocaleString()})</span>
-                  <span>Taxes & PF (${deductions.toLocaleString()})</span>
+                  <span>Take Home (₹{net.toLocaleString('en-IN')})</span>
+                  <span>EPF, PT & TDS (₹{deductions.toLocaleString('en-IN')})</span>
                 </div>
               </div>
             </div>

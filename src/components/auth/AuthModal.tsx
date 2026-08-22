@@ -109,21 +109,21 @@ export const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
           <div className="grid grid-cols-2 gap-2 text-xs">
             <button
               onClick={() => {
-                switchUser(users[0].id); // Alex Morgan (Admin)
+                switchUser(users[0]?.id || 'user-1'); // Aarav Mehta (Admin)
                 onClose();
               }}
               className="px-2.5 py-1.5 rounded-xl bg-white border border-brand-200 text-brand-800 font-bold hover:bg-brand-100 transition-colors truncate text-left"
             >
-              👑 Admin (Alex M.)
+              👑 Admin (Aarav M.)
             </button>
             <button
               onClick={() => {
-                switchUser(users[2].id); // Liam Chen (Employee)
+                switchUser(users[2]?.id || 'user-3'); // Rohan Verma (Employee)
                 onClose();
               }}
               className="px-2.5 py-1.5 rounded-xl bg-white border border-brand-200 text-brand-800 font-bold hover:bg-brand-100 transition-colors truncate text-left"
             >
-              💻 Employee (Liam C.)
+              💻 Employee (Rohan V.)
             </button>
           </div>
         </div>
@@ -170,7 +170,7 @@ export const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
                 <input
                   type="text"
                   required
-                  placeholder="liam.chen@dayflow.internal or EMP-003"
+                  placeholder="rohan.verma@dayflow.in or EMP-003"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"

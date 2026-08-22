@@ -129,7 +129,7 @@ export const EmployeeDirectoryView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Monthly Net:</span>
                   <span className="font-bold font-mono text-emerald-600">
-                    ${user.salary.netSalary.toLocaleString()} USD
+                    ₹{user.salary.netSalary.toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export const EmployeeDirectoryView: React.FC = () => {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex justify-between">
                 <span className="text-slate-400">Monthly Compensation:</span>
                 <span className="font-bold font-mono text-emerald-600">
-                  ${activeModalUser.salary.netSalary.toLocaleString()} USD
+                  ₹{activeModalUser.salary.netSalary.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>

@@ -157,9 +157,9 @@ export const PayslipPreviewModal: React.FC<PayslipPreviewModalProps> = ({
               <p className="text-xs text-slate-300">Period: {selectedMonth} • Ref: DFS-{selectedMonth.substring(0, 3).toUpperCase()}-{user.employeeId}</p>
             </div>
             <div className="text-right">
-              <span className="text-[10px] text-emerald-400 font-bold block">✓ DISBURSED</span>
+              <span className="text-[10px] text-emerald-400 font-bold block">✓ DISBURSED (NEFT/RTGS)</span>
               <span className="text-xl font-extrabold text-white font-mono">
-                ${netPay.toLocaleString()}
+                ₹{netPay.toLocaleString('en-IN')}
               </span>
             </div>
           </div>
@@ -187,42 +187,42 @@ export const PayslipPreviewModal: React.FC<PayslipPreviewModalProps> = ({
           {/* Earnings & Deductions Breakdown */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Detailed Breakdown
+              Statutory Breakdown (INR)
             </h4>
             <div className="border border-slate-200 rounded-2xl overflow-hidden text-xs">
               <table className="w-full text-left">
                 <thead className="bg-slate-100/70 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
                   <tr>
-                    <th className="py-2.5 px-4">Earnings</th>
-                    <th className="py-2.5 px-4 text-right">Amount</th>
-                    <th className="py-2.5 px-4">Deductions</th>
-                    <th className="py-2.5 px-4 text-right">Amount</th>
+                    <th className="py-2.5 px-4">Earnings & Allowances</th>
+                    <th className="py-2.5 px-4 text-right">Amount (₹)</th>
+                    <th className="py-2.5 px-4">Statutory Deductions</th>
+                    <th className="py-2.5 px-4 text-right">Amount (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
                   <tr>
-                    <td className="py-2.5 px-4">Basic Pay</td>
-                    <td className="py-2.5 px-4 text-right font-mono font-semibold">${basic.toLocaleString()}</td>
-                    <td className="py-2.5 px-4">Income Tax (TDS)</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-${(deductions * 0.55).toFixed(2)}</td>
+                    <td className="py-2.5 px-4">Basic Salary</td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold">₹{basic.toLocaleString('en-IN')}</td>
+                    <td className="py-2.5 px-4">EPF (Provident Fund 12%)</td>
+                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-₹{Math.round(basic * 0.12).toLocaleString('en-IN')}</td>
                   </tr>
                   <tr>
-                    <td className="py-2.5 px-4">HRA Allowance</td>
-                    <td className="py-2.5 px-4 text-right font-mono font-semibold">${hra.toLocaleString()}</td>
-                    <td className="py-2.5 px-4">Provident Fund (401k)</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-${(deductions * 0.35).toFixed(2)}</td>
+                    <td className="py-2.5 px-4">House Rent Allowance (HRA)</td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold">₹{hra.toLocaleString('en-IN')}</td>
+                    <td className="py-2.5 px-4">Income Tax (TDS u/s 192)</td>
+                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-₹{Math.max(0, deductions - Math.round(basic * 0.12) - 200).toLocaleString('en-IN')}</td>
                   </tr>
                   <tr>
-                    <td className="py-2.5 px-4">Special Allowances</td>
-                    <td className="py-2.5 px-4 text-right font-mono font-semibold">${allowances.toLocaleString()}</td>
-                    <td className="py-2.5 px-4">Health Insurance</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-${(deductions * 0.10).toFixed(2)}</td>
+                    <td className="py-2.5 px-4">Special & Travel Allowances</td>
+                    <td className="py-2.5 px-4 text-right font-mono font-semibold">₹{allowances.toLocaleString('en-IN')}</td>
+                    <td className="py-2.5 px-4">Professional Tax (PT)</td>
+                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-₹200</td>
                   </tr>
                   <tr className="bg-slate-50/80 font-bold text-slate-900 border-t border-slate-200">
-                    <td className="py-2.5 px-4">Total Gross</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-emerald-600">${grossEarnings.toLocaleString()}</td>
+                    <td className="py-2.5 px-4">Total Gross Earnings</td>
+                    <td className="py-2.5 px-4 text-right font-mono text-emerald-600">₹{grossEarnings.toLocaleString('en-IN')}</td>
                     <td className="py-2.5 px-4">Total Deductions</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-${deductions.toLocaleString()}</td>
+                    <td className="py-2.5 px-4 text-right font-mono text-rose-600">-₹{deductions.toLocaleString('en-IN')}</td>
                   </tr>
                 </tbody>
               </table>

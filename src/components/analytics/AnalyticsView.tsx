@@ -192,10 +192,10 @@ export const AnalyticsView: React.FC = () => {
           </div>
           <div className="mt-4">
             <div className="text-3xl font-black text-slate-900">
-              ${totalMonthlyPayroll.toLocaleString()}
+              ₹{totalMonthlyPayroll.toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-slate-400 font-medium mt-1">
-              Annualized CTC: ${totalAnnualCTC.toLocaleString()}
+              Annualized CTC: ₹{totalAnnualCTC.toLocaleString('en-IN')}
             </p>
           </div>
         </div>
@@ -294,7 +294,7 @@ export const AnalyticsView: React.FC = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(val: any) => [`$${Number(val).toLocaleString()} USD`, 'Monthly Net']} />
+                <Tooltip formatter={(val: any) => [`₹${Number(val).toLocaleString('en-IN')} INR`, 'Monthly Net']} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -307,7 +307,7 @@ export const AnalyticsView: React.FC = () => {
                   <span className="text-slate-600 truncate">{item.name}</span>
                 </div>
                 <span className="font-bold font-mono text-slate-900 ml-1">
-                  ${item.value.toLocaleString()}
+                  ₹{item.value.toLocaleString('en-IN')}
                 </span>
               </div>
             ))}

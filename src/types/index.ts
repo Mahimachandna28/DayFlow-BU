@@ -33,14 +33,16 @@ export interface DocumentItem {
 export interface SalaryStructure {
   basicSalary: number;
   hra: number; // House Rent Allowance
-  allowances: number; // Special/Transport/Medical
-  deductions: number; // Tax, PF, Health insurance
+  allowances: number; // Special/Dearness/Transport Allowance
+  deductions: number; // EPF + Professional Tax + TDS
   netSalary: number;
-  currency: string;
+  currency: string; // 'INR'
   effectiveFrom: string;
   bankAccount: string;
   bankName: string;
-  panOrTaxId: string;
+  ifscCode?: string;
+  panOrTaxId: string; // PAN Number e.g. ABCDE1234F
+  uanNumber?: string; // EPF Universal Account Number
 }
 
 export interface Profile {
@@ -77,13 +79,15 @@ export interface AttendanceRecord {
   department: string;
   date: string; // YYYY-MM-DD
   checkIn: string | null; // e.g. "09:15 AM"
-  checkOut: string | null; // e.g. "05:45 PM"
+  checkOut: string | null; // e.g. "06:30 PM"
   totalHours: number;
   status: AttendanceStatus;
   remarks?: string;
   locationStatus?: MockLocationStatus;
   geoDistanceKm?: number | null;
   geoLabel?: string;
+  deviceFingerprint?: string;
+  ipAddress?: string;
 }
 
 export interface LeaveRequest {
@@ -115,7 +119,7 @@ export interface NotificationItem {
 
 export interface ActiveWorkSession {
   isActive: boolean;
-  startTime: number | null; // Unix timestamp
+  startTime: number | null;
   elapsedSeconds: number;
   isOnBreak: boolean;
   breakStartTime: number | null;

@@ -371,35 +371,35 @@ export const ProfileView: React.FC = () => {
 
         {activeTab === 'salary' && (
           <div className="space-y-4 text-xs">
-            <h3 className="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">Salary & Payment Details</h3>
+            <h3 className="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">Salary & Direct Deposit Details</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block font-bold text-slate-400 mb-1">Gross Base Pay (Read-Only)</label>
+                <label className="block font-bold text-slate-400 mb-1">Gross Monthly CTC (Read-Only)</label>
                 <input
                   type="text"
                   disabled
-                  value={`$${(
+                  value={`₹${(
                     currentUser.salary.basicSalary +
                     currentUser.salary.hra +
                     currentUser.salary.allowances
-                  ).toLocaleString()} USD`}
+                  ).toLocaleString('en-IN')}`}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-400 mb-1">Net Take-Home Pay (Read-Only)</label>
+                <label className="block font-bold text-slate-400 mb-1">Net Monthly Take-Home (Read-Only)</label>
                 <input
                   type="text"
                   disabled
-                  value={`$${currentUser.salary.netSalary.toLocaleString()} USD`}
+                  value={`₹${currentUser.salary.netSalary.toLocaleString('en-IN')}`}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-emerald-600 font-black cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-400 mb-1">Bank Name (Read-Only)</label>
+                <label className="block font-bold text-slate-400 mb-1">Bank & Branch (Read-Only)</label>
                 <input
                   type="text"
                   disabled
@@ -409,18 +409,18 @@ export const ProfileView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-400 mb-1">Direct Deposit Account (Read-Only)</label>
+                <label className="block font-bold text-slate-400 mb-1">Bank Account / IFSC (Read-Only)</label>
                 <input
                   type="text"
                   disabled
-                  value={currentUser.salary.bankAccount}
+                  value={`${currentUser.salary.bankAccount} (${currentUser.salary.ifscCode || 'HDFC0000128'})`}
                   className="w-full p-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed font-mono"
                 />
               </div>
             </div>
             
             <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-[10px] font-medium leading-relaxed">
-              <strong>Note:</strong> Financial records are governed strictly by payroll audits. If you need to revise bank account details, please submit an offline authorization form directly to Elena Rostova (People Operations).
+              <strong>Note:</strong> Financial and statutory records are audited under EPFO & Income Tax guidelines. If you need to revise bank account details, submit an authorization request to Pooja Iyer (HR Operations).
             </div>
           </div>
         )}
