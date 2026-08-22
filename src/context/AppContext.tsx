@@ -6,11 +6,13 @@ import {
   Profile,
   SalaryStructure,
   AttendanceRecord,
+  MockLocationStatus,
   LeaveRequest,
   NotificationItem,
   ActiveWorkSession,
   LeaveType,
   LeaveStatus,
+  SecurityAlert,
 } from '../types';
 import {
   INITIAL_USERS,
@@ -33,9 +35,12 @@ interface AppContextType {
   leaveRequests: LeaveRequest[];
   notifications: NotificationItem[];
   activeSession: ActiveWorkSession;
+  mockLocationStatus: MockLocationStatus;
   toasts: ToastMessage[];
   currentView: string;
   setCurrentView: (view: string) => void;
+  setMockLocationStatus: (status: MockLocationStatus) => void;
+  getAttendanceAnomalies: (records?: AttendanceRecord[]) => SecurityAlert[];
   // Auth & Demo switcher
   switchUser: (userId: string) => void;
   login: (emailOrEmpId: string, role?: Role) => boolean;
@@ -83,6 +88,114 @@ const STORAGE_KEYS = {
   LEAVES: 'dayflow_leaves_v1',
   NOTIFICATIONS: 'dayflow_notifs_v1',
   SESSION: 'dayflow_session_v1',
+  MOCK_LOCATION: 'dayflow_mock_location_v1',
+};
+
+const GEO_PROFILES: Record<
+  MockLocationStatus,
+  { label: string; distanceKm: number | null; remarks: string }
+> = {
+  office: {
+    label: 'At Office HQ',
+    distanceKm: 0.03,
+    remarks: 'HQ verified check-in',
+  },
+  remote: {
+    label: 'Remote / Out of Bounds',
+    distanceKm: 5.4,
+    remarks: '[Geo Breach] Outside company perimeter - 5.4 km from HQ',
+  },
+  blocked: {
+    label: 'Disabled / Denied',
+    distanceKm: null,
+    remarks: '[GPS Warning] Location sensor unavailable or permission denied',
+  },
+};
+
+const parseTimeToMinutes = (time: string | null): number | null => {
+  if (!time) return null;
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  if (!match) return null;
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const period = match[3]?.toUpperCase();
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+
+  return hours * 60 + minutes;
+};
+
+export const getAttendanceAnomalies = (records: AttendanceRecord[] = []): SecurityAlert[] => {
+  const alerts: SecurityAlert[] = [];
+
+  records.forEach((record) => {
+    const checkInMinutes = parseTimeToMinutes(record.checkIn);
+    const distance = record.geoDistanceKm ?? null;
+
+    if (checkInMinutes !== null && checkInMinutes > 10 * 60) {
+      alerts.push({
+        id: `${record.id}-late`,
+        recordId: record.id,
+        employeeName: record.employeeName,
+        employeeId: record.employeeId,
+        date: record.date,
+        title: 'Late Arrival',
+        detail: `${record.employeeName} checked in at ${record.checkIn}, after the 10:00 AM threshold.`,
+        severity: 'Warning',
+      });
+    }
+
+    if (record.totalHours > 0 && record.totalHours < 5.0) {
+      alerts.push({
+        id: `${record.id}-short-shift`,
+        recordId: record.id,
+        employeeName: record.employeeName,
+        employeeId: record.employeeId,
+        date: record.date,
+        title: 'Short Shift',
+        detail: `${record.employeeName} recorded ${record.totalHours.toFixed(1)} active hours.`,
+        severity: 'Info',
+      });
+    }
+
+    if (distance !== null && distance > 0.5) {
+      alerts.push({
+        id: `${record.id}-geo`,
+        recordId: record.id,
+        employeeName: record.employeeName,
+        employeeId: record.employeeId,
+        date: record.date,
+        title: 'Geo-fence Breach',
+        detail: `${record.employeeName} punched in ${distance.toFixed(1)} km from Office HQ.`,
+        severity: 'Critical',
+      });
+    }
+
+    if (checkInMinutes !== null && (checkInMinutes >= 22 * 60 || checkInMinutes < 5 * 60)) {
+      alerts.push({
+        id: `${record.id}-odd-hour`,
+        recordId: record.id,
+        employeeName: record.employeeName,
+        employeeId: record.employeeId,
+        date: record.date,
+        title: 'Odd-Hour Sign-in',
+        detail: `${record.employeeName} signed in at ${record.checkIn}, outside standard operating hours.`,
+        severity: 'Critical',
+      });
+    }
+  });
+
+  return alerts.sort((a, b) => {
+    const severityRank: Record<SecurityAlert['severity'], number> = {
+      Critical: 0,
+      Warning: 1,
+      Info: 2,
+    };
+    return severityRank[a.severity] - severityRank[b.severity] || b.date.localeCompare(a.date);
+  });
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -123,7 +236,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           isOnBreak: false,
           breakStartTime: null,
           totalBreakSeconds: 0,
+          locationStatus: 'office',
+          geoDistanceKm: 0.03,
         };
+  });
+
+  const [mockLocationStatus, setMockLocationStatusState] = useState<MockLocationStatus>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.MOCK_LOCATION) as MockLocationStatus | null;
+    return saved && ['office', 'remote', 'blocked'].includes(saved) ? saved : 'office';
   });
 
   const [currentView, setCurrentView] = useState<string>('dashboard');
@@ -154,6 +274,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(activeSession));
   }, [activeSession]);
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.MOCK_LOCATION, mockLocationStatus);
+  }, [mockLocationStatus]);
+
   // Live timer interval for active work session
   useEffect(() => {
     let interval: any = null;
@@ -169,6 +293,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [activeSession.isActive, activeSession.isOnBreak]);
 
   const currentUser = users.find((u) => u.id === currentUserId) || users[0];
+
+  const setMockLocationStatus = (status: MockLocationStatus) => {
+    setMockLocationStatusState(status);
+    const profile = GEO_PROFILES[status];
+    addToast('Location Simulator Updated', `${profile.label} selected for punch testing.`, 'info');
+  };
 
   // Toast Helpers
   const addToast = (title: string, message: string, type: ToastMessage['type'] = 'success') => {
@@ -273,6 +403,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const todayStr = now.toISOString().split('T')[0];
+    const geoProfile = GEO_PROFILES[mockLocationStatus];
+    const isRemote = mockLocationStatus === 'remote';
+    const isBlocked = mockLocationStatus === 'blocked';
+    const locationRemarks =
+      mockLocationStatus === 'office'
+        ? geoProfile.remarks
+        : `${geoProfile.remarks}${isRemote ? '' : ' - punch logged for HR review'}`;
 
     setActiveSession({
       isActive: true,
@@ -281,6 +418,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isOnBreak: false,
       breakStartTime: null,
       totalBreakSeconds: 0,
+      locationStatus: mockLocationStatus,
+      geoDistanceKm: geoProfile.distanceKm,
     });
 
     // Check if record exists for today
@@ -288,7 +427,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const existing = prev.find((r) => r.userId === currentUser.id && r.date === todayStr);
       if (existing) {
         return prev.map((r) =>
-          r.id === existing.id ? { ...r, checkIn: timeStr, status: 'PRESENT' as const } : r
+          r.id === existing.id
+            ? {
+                ...r,
+                checkIn: timeStr,
+                status: 'PRESENT' as const,
+                remarks: locationRemarks,
+                locationStatus: mockLocationStatus,
+                geoDistanceKm: geoProfile.distanceKm,
+                geoLabel: geoProfile.label,
+              }
+            : r
         );
       } else {
         const newRecord: AttendanceRecord = {
@@ -302,13 +451,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           checkOut: null,
           totalHours: 0.1,
           status: 'PRESENT',
-          remarks: 'Standard check-in',
+          remarks: locationRemarks,
+          locationStatus: mockLocationStatus,
+          geoDistanceKm: geoProfile.distanceKm,
+          geoLabel: geoProfile.label,
         };
         return [newRecord, ...prev];
       }
     });
 
-    addToast('Punched In', `Clock started at ${timeStr}. Have a productive day!`);
+    if (isRemote) {
+      addToast(
+        'Geo-fence Warning',
+        `Warning: Punching from outside company perimeter (${geoProfile.distanceKm?.toFixed(1)}km).`,
+        'warning'
+      );
+    } else if (isBlocked) {
+      addToast(
+        'GPS Warning',
+        'Punch logged, but location permission or sensor data was unavailable.',
+        'warning'
+      );
+    } else {
+      addToast('Punched In', `Clock started at ${timeStr}. Have a productive day!`);
+    }
   };
 
   const punchOut = () => {
@@ -324,6 +490,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isOnBreak: false,
       breakStartTime: null,
       totalBreakSeconds: 0,
+      locationStatus: activeSession.locationStatus,
+      geoDistanceKm: activeSession.geoDistanceKm,
     });
 
     setAttendanceRecords((prev) => {
@@ -507,6 +675,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setAttendanceRecords(INITIAL_ATTENDANCE);
     setLeaveRequests(INITIAL_LEAVES);
     setNotifications(INITIAL_NOTIFICATIONS);
+    setMockLocationStatusState('office');
     setActiveSession({
       isActive: true,
       startTime: Date.now() - 4 * 3600 * 1000,
@@ -514,6 +683,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isOnBreak: false,
       breakStartTime: null,
       totalBreakSeconds: 0,
+      locationStatus: 'office',
+      geoDistanceKm: 0.03,
     });
     addToast('Demo Data Reset', 'Restored pristine demo state for live pitch.', 'info');
   };
@@ -527,9 +698,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         leaveRequests,
         notifications,
         activeSession,
+        mockLocationStatus,
         toasts,
         currentView,
         setCurrentView,
+        setMockLocationStatus,
+        getAttendanceAnomalies,
         switchUser,
         login,
         register,

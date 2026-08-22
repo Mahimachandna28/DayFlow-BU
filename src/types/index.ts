@@ -6,6 +6,21 @@ export type LeaveType = 'PAID' | 'SICK' | 'UNPAID';
 
 export type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
+export type MockLocationStatus = 'office' | 'remote' | 'blocked';
+
+export type SecurityAlertSeverity = 'Info' | 'Warning' | 'Critical';
+
+export interface SecurityAlert {
+  id: string;
+  recordId: string;
+  employeeName: string;
+  employeeId: string;
+  date: string;
+  title: string;
+  detail: string;
+  severity: SecurityAlertSeverity;
+}
+
 export interface DocumentItem {
   id: string;
   name: string;
@@ -66,6 +81,9 @@ export interface AttendanceRecord {
   totalHours: number;
   status: AttendanceStatus;
   remarks?: string;
+  locationStatus?: MockLocationStatus;
+  geoDistanceKm?: number | null;
+  geoLabel?: string;
 }
 
 export interface LeaveRequest {
@@ -102,4 +120,6 @@ export interface ActiveWorkSession {
   isOnBreak: boolean;
   breakStartTime: number | null;
   totalBreakSeconds: number;
+  locationStatus?: MockLocationStatus;
+  geoDistanceKm?: number | null;
 }
