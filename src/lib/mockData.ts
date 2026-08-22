@@ -12,7 +12,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Mehta',
       phone: '+91 98201 45678',
       address: 'Flat 402, Prestige Palms, Indiranagar 100ft Road, Bengaluru, Karnataka 560038',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80',
       department: 'Executive HR',
       designation: 'VP of People & Culture / Admin',
       dateOfJoining: '2022-01-15',
@@ -52,7 +52,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Iyer',
       phone: '+91 98450 67890',
       address: 'Tower B-804, Sobha Quartz, Bellandur Outer Ring Road, Bengaluru, Karnataka 560103',
-      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
       department: 'Human Resources',
       designation: 'Lead People Operations Specialist',
       dateOfJoining: '2022-06-01',
@@ -91,7 +91,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Verma',
       phone: '+91 99100 23456',
       address: 'Villa 14, Palm Meadows, Whitefield, Bengaluru, Karnataka 560066',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
       department: 'Engineering',
       designation: 'Senior Staff Frontend Architect',
       dateOfJoining: '2023-02-10',
@@ -131,7 +131,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Deshmukh',
       phone: '+91 97654 32109',
       address: 'Skyline Penthouse 12A, Powai Hiranandani, Mumbai, Maharashtra 400076',
-      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       department: 'Product Design',
       designation: 'Lead Product & UX Designer',
       dateOfJoining: '2023-04-18',
@@ -170,7 +170,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Malhotra',
       phone: '+91 98112 34567',
       address: 'Tower 4, DLF Cyber City Phase 2, Gurugram, Haryana 122002',
-      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80',
       department: 'Engineering',
       designation: 'Full Stack Backend Developer',
       dateOfJoining: '2023-08-01',
@@ -208,7 +208,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Reddy',
       phone: '+91 99490 12345',
       address: 'Flat 501, Aparna CyberLife, HITEC City, Hyderabad, Telangana 500081',
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
       department: 'Infrastructure',
       designation: 'DevOps & Site Reliability Engineer',
       dateOfJoining: '2023-10-15',
@@ -246,7 +246,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Nair',
       phone: '+91 98480 34567',
       address: 'Plot 88, Baner High Street, Pune, Maharashtra 411045',
-      avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
       department: 'Engineering',
       designation: 'Staff QA Automation Engineer',
       dateOfJoining: '2023-11-01',
@@ -284,7 +284,7 @@ export const INITIAL_USERS: User[] = [
       lastName: 'Patel',
       phone: '+91 98250 89012',
       address: 'Tower C-1402, Sector 62, Noida, Uttar Pradesh 201309',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
       department: 'Product Design',
       designation: 'Product Marketing & Growth Lead',
       dateOfJoining: '2024-01-08',
@@ -310,6 +310,82 @@ export const INITIAL_USERS: User[] = [
       panOrTaxId: 'IIRNP9910R',
       uanNumber: '100441928399',
     },
+  },
+  {
+    id: 'user-9',
+    employeeId: 'EMP-009',
+    email: 'kabir.sharma@dayflow.in',
+    role: 'EMPLOYEE',
+    isVerified: true,
+    profile: {
+      firstName: 'Kabir',
+      lastName: 'Sharma',
+      phone: '+91 98188 77665',
+      address: 'Suite 204, Embassy GolfLinks, Domlur, Bengaluru, Karnataka 560071',
+      avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80',
+      department: 'Infrastructure',
+      designation: 'Information Security & Cloud Architect',
+      dateOfJoining: '2023-05-12',
+      employeeId: 'EMP-009',
+      email: 'kabir.sharma@dayflow.in',
+      emergencyContact: '+91 98188 11223 (Spouse)',
+      skills: ['Zero Trust', 'SOC2 Compliance', 'Cloud Security', 'Vault', 'IAM', 'Threat Modeling'],
+      documents: [
+        { id: 'doc-15', name: 'Security_Clearance_Dossier.pdf', type: 'PDF', size: '2.1 MB', uploadDate: '2023-05-12' },
+      ],
+    },
+    salary: {
+      basicSalary: 82000,
+      hra: 38000,
+      allowances: 25000,
+      deductions: 20000,
+      netSalary: 125000,
+      currency: 'INR',
+      effectiveFrom: '2024-04-01',
+      bankAccount: '•••• •••• 4890',
+      bankName: 'State Bank of India (Domlur)',
+      ifscCode: 'SBIN0005520',
+      panOrTaxId: 'JJKSK8830S',
+      uanNumber: '100331928301',
+    },
+  },
+  {
+    id: 'user-10',
+    employeeId: 'EMP-010',
+    email: 'meera.swaminathan@dayflow.in',
+    role: 'HR_OFFICER',
+    isVerified: true,
+    profile: {
+      firstName: 'Meera',
+      lastName: 'Swaminathan',
+      phone: '+91 98401 23456',
+      address: 'Apt 302, Green Glen Layout, Bellandur, Bengaluru, Karnataka 560103',
+      avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+      department: 'Human Resources',
+      designation: 'Senior Talent Acquisition Lead',
+      dateOfJoining: '2023-09-01',
+      employeeId: 'EMP-010',
+      email: 'meera.swaminathan@dayflow.in',
+      emergencyContact: '+91 98409 87654 (Mother)',
+      skills: ['Technical Sourcing', 'University Hiring', 'Employer Branding', 'ATS Automation'],
+      documents: [
+        { id: 'doc-16', name: 'Meera_Recruitment_Agreement.pdf', type: 'PDF', size: '1.4 MB', uploadDate: '2023-09-01' },
+      ],
+    },
+    salary: {
+      basicSalary: 56000,
+      hra: 26000,
+      allowances: 18000,
+      deductions: 12000,
+      netSalary: 88000,
+      currency: 'INR',
+      effectiveFrom: '2024-04-01',
+      bankAccount: '•••• •••• 1209',
+      bankName: 'ICICI Bank (Bellandur)',
+      ifscCode: 'ICIC0001092',
+      panOrTaxId: 'KKMSM4419T',
+      uanNumber: '100221928399',
+    },
   }
 ];
 
@@ -320,7 +396,7 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
     employeeName: 'Rohan Verma',
     employeeId: 'EMP-003',
     department: 'Engineering',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
     leaveType: 'PAID',
     startDate: '2026-08-28',
     endDate: '2026-08-30',
@@ -335,7 +411,7 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
     employeeName: 'Ananya Deshmukh',
     employeeId: 'EMP-004',
     department: 'Product Design',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     leaveType: 'SICK',
     startDate: '2026-08-24',
     endDate: '2026-08-24',
@@ -350,7 +426,7 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
     employeeName: 'Vikram Malhotra',
     employeeId: 'EMP-005',
     department: 'Engineering',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80',
     leaveType: 'PAID',
     startDate: '2026-08-10',
     endDate: '2026-08-14',
@@ -367,7 +443,7 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
     employeeName: 'Sneha Reddy',
     employeeId: 'EMP-006',
     department: 'Infrastructure',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
     leaveType: 'UNPAID',
     startDate: '2026-07-20',
     endDate: '2026-07-21',
@@ -377,10 +453,59 @@ export const INITIAL_LEAVES: LeaveRequest[] = [
     adminRemarks: 'Approved by Admin.',
     reviewedBy: 'Aarav Mehta (Admin)',
     createdAt: '2026-07-15',
+  },
+  {
+    id: 'leave-5',
+    userId: 'user-7',
+    employeeName: 'Arjun Nair',
+    employeeId: 'EMP-007',
+    department: 'Engineering',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    leaveType: 'PAID',
+    startDate: '2026-09-02',
+    endDate: '2026-09-04',
+    totalDays: 3,
+    reason: 'Attending elder brother wedding reception in Kochi.',
+    status: 'PENDING',
+    createdAt: '2026-08-22',
+  },
+  {
+    id: 'leave-6',
+    userId: 'user-8',
+    employeeName: 'Neha Patel',
+    employeeId: 'EMP-008',
+    department: 'Product Design',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
+    leaveType: 'PAID',
+    startDate: '2026-07-08',
+    endDate: '2026-07-09',
+    totalDays: 2,
+    reason: 'Attending DesignOps India Conference 2026.',
+    status: 'APPROVED',
+    adminRemarks: 'Conference attendance approved under skill growth policy.',
+    reviewedBy: 'Aarav Mehta (Admin)',
+    createdAt: '2026-07-01',
+  },
+  {
+    id: 'leave-7',
+    userId: 'user-9',
+    employeeName: 'Kabir Sharma',
+    employeeId: 'EMP-009',
+    department: 'Infrastructure',
+    avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80',
+    leaveType: 'SICK',
+    startDate: '2026-08-18',
+    endDate: '2026-08-19',
+    totalDays: 2,
+    reason: 'Viral fever rest recommended by physician.',
+    status: 'APPROVED',
+    adminRemarks: 'Get well soon Kabir.',
+    reviewedBy: 'Pooja Iyer (HR)',
+    createdAt: '2026-08-18',
   }
 ];
 
-// Helper to generate a realistic 30-day attendance history matrix for all 8 employees
+// Helper to generate a realistic 30-day attendance history matrix for all 10 employees
 function generate30DayAttendance(): AttendanceRecord[] {
   const records: AttendanceRecord[] = [];
   const baseDate = new Date('2026-08-22');
@@ -389,7 +514,7 @@ function generate30DayAttendance(): AttendanceRecord[] {
     for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
       const d = new Date(baseDate);
       d.setDate(baseDate.getDate() - dayOffset);
-      const dayOfWeek = d.getDay(); // 0 is Sunday, 6 is Saturday
+      const dayOfWeek = d.getDay(); // 0 is Sunday
       const dateStr = d.toISOString().split('T')[0];
 
       // Skip Sundays
@@ -404,7 +529,6 @@ function generate30DayAttendance(): AttendanceRecord[] {
       let locationStatus: AttendanceRecord['locationStatus'] = 'office';
       let distance = 0.03;
 
-      // Realistic variations for employees
       if (isToday) {
         checkIn = userIdx === 4 ? null! : '09:00 AM';
         checkOut = null;
@@ -414,14 +538,12 @@ function generate30DayAttendance(): AttendanceRecord[] {
         locationStatus = userIdx === 4 ? 'blocked' : 'office';
         distance = userIdx === 4 ? 14.2 : 0.03;
       } else if (dayOffset % 9 === 0 && userIdx > 1) {
-        // Occasional half-day
         checkIn = '09:15 AM';
         checkOut = '01:30 PM';
         hours = 4.25;
         status = 'HALF_DAY';
         remarks = 'Approved half day medical appointment';
       } else if (dayOffset === 12 && userIdx === 4) {
-        // Approved leave day
         checkIn = null!;
         checkOut = null;
         hours = 0;
@@ -484,5 +606,21 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     type: 'system',
     timestamp: '3 days ago',
     read: true,
+  },
+  {
+    id: 'notif-4',
+    title: 'Ganesh Chaturthi Corporate Holiday Notice',
+    message: 'Office will remain closed on Monday, September 7, 2026 for Ganesh Chaturthi.',
+    type: 'system',
+    timestamp: '4 days ago',
+    read: true,
+  },
+  {
+    id: 'notif-5',
+    title: 'EPF Statement Reconciled',
+    message: 'Your EPFO monthly passbook contribution of 12% has been successfully synced with EPFO portal.',
+    type: 'payroll',
+    timestamp: '5 days ago',
+    read: false,
   }
 ];

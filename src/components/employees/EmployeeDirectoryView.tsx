@@ -7,8 +7,9 @@ import {
   Briefcase,
   MapPin,
   Calendar,
-  DollarSign,
+  IndianRupee,
   ChevronRight,
+  ChevronLeft,
   ShieldCheck,
   Download,
   Eye,
@@ -27,8 +28,10 @@ export const EmployeeDirectoryView: React.FC = () => {
   const [activeModalUser, setActiveModalUser] = useState<User | null>(null);
   const [previewUser, setPreviewUser] = useState<User | null>(null);
   const [previewMonth, setPreviewMonth] = useState('August 2026');
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
 
-  const departments = ['All', 'Engineering', 'Human Resources', 'Product Design', 'Infrastructure'];
+  const departments = ['All', 'Executive HR', 'Engineering', 'Human Resources', 'Product Design', 'Infrastructure'];
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
@@ -39,6 +42,9 @@ export const EmployeeDirectoryView: React.FC = () => {
     const matchesDept = selectedDept === 'All' || u.profile.department === selectedDept;
     return matchesSearch && matchesDept;
   });
+
+  const totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div className="space-y-6">
@@ -89,7 +95,7 @@ export const EmployeeDirectoryView: React.FC = () => {
 
       {/* Directory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredUsers.map((user) => (
+        {paginatedUsers.map((user) => (
           <div
             key={user.id}
             className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between group"
@@ -152,6 +158,34 @@ export const EmployeeDirectoryView: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Directory Pagination */}
+      {totalPages > 1 && (
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between text-xs text-slate-600">
+          <span>
+            Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, filteredUsers.length)} of {filteredUsers.length} staff
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="font-bold text-slate-800 px-2">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* User Details Modal */}
       {activeModalUser && (

@@ -9,7 +9,7 @@ import {
   FileCheck,
   Award,
   Contact,
-  DollarSign,
+  IndianRupee,
   Upload,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -135,7 +135,7 @@ export const ProfileView: React.FC = () => {
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
-          <DollarSign className="w-4 h-4" /> Compensation
+          <IndianRupee className="w-4 h-4" /> Compensation
         </button>
         <button
           onClick={() => setActiveTab('docs')}

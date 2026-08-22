@@ -14,6 +14,8 @@ import {
   Coffee,
   MapPin,
   ShieldAlert,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AttendanceRecord, AttendanceStatus, MockLocationStatus } from '../../types';
@@ -32,11 +34,13 @@ export const AttendanceView: React.FC = () => {
 
   const isAdminOrHR = currentUser.role === 'ADMIN' || currentUser.role === 'HR_OFFICER';
 
-  // State for filtering
+  // State for filtering & pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Edit fields state
   const [editCheckIn, setEditCheckIn] = useState('');
@@ -306,7 +310,9 @@ export const AttendanceView: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((record) => {
+                filteredRecords
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map((record) => {
                   const isGeoBreach = hasGeoBreach(record);
                   return (
                   <tr
@@ -381,6 +387,52 @@ export const AttendanceView: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="p-4 bg-slate-50/80 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <span>Show rows:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 bg-white border border-slate-200 rounded-lg font-bold text-xs"
+            >
+              <option value={10}>10 records</option>
+              <option value={20}>20 records</option>
+              <option value={50}>50 records</option>
+            </select>
+            <span className="text-slate-400">
+              (Total {filteredRecords.length} logs)
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500 mr-1">
+              Page <strong>{currentPage}</strong> of <strong>{Math.ceil(filteredRecords.length / pageSize) || 1}</strong>
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() =>
+                setCurrentPage((p) =>
+                  Math.min(Math.ceil(filteredRecords.length / pageSize) || 1, p + 1)
+                )
+              }
+              disabled={currentPage >= (Math.ceil(filteredRecords.length / pageSize) || 1)}
+              className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 

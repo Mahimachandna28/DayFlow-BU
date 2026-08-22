@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  DollarSign,
+  IndianRupee,
   Download,
   Edit2,
   Coins,
@@ -15,6 +15,8 @@ import {
   Package,
   Sparkles,
   Send,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../../context/AppContext';
@@ -33,6 +35,8 @@ export const PayrollView: React.FC = () => {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [isBulkGenerating, setIsBulkGenerating] = useState(false);
   const [isBulkEmailing, setIsBulkEmailing] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
 
   // Preview Modal state
   const [previewUser, setPreviewUser] = useState<User | null>(null);
@@ -56,6 +60,9 @@ export const PayrollView: React.FC = () => {
 
     return matchesSearch && matchesDept;
   });
+
+  const totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
 
   const handleEditClick = (user: User) => {
     setEditingUserId(user.id);
@@ -150,7 +157,7 @@ export const PayrollView: React.FC = () => {
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
-            <DollarSign className="w-6 h-6 text-brand-600" />
+            <IndianRupee className="w-6 h-6 text-brand-600" />
             Payroll & Salary Center
           </h1>
           <p className="text-xs md:text-sm text-slate-500 mt-1">
@@ -242,7 +249,7 @@ export const PayrollView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {filteredUsers.map((user) => {
+                  {paginatedUsers.map((user) => {
                     const isEditing = editingUserId === user.id;
 
                     return (
@@ -305,7 +312,7 @@ export const PayrollView: React.FC = () => {
                               />
                             </td>
                             <td className="p-4 font-extrabold text-emerald-600 font-mono">
-                              ${(editBasic + editHra + editAllowances - editDeductions).toLocaleString()}
+                              ₹{(editBasic + editHra + editAllowances - editDeductions).toLocaleString('en-IN')}
                             </td>
                             <td className="p-4 pr-6 text-right flex items-center justify-end gap-2">
                               <button
@@ -378,6 +385,34 @@ export const PayrollView: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Footer */}
+            {totalPages > 1 && (
+              <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                <span>
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, filteredUsers.length)} of {filteredUsers.length} staff
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-bold text-slate-800 px-2">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (

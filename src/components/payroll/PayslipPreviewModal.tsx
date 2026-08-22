@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   ShieldCheck,
   Building,
-  DollarSign,
+  IndianRupee,
   QrCode,
   Sparkles,
 } from 'lucide-react';

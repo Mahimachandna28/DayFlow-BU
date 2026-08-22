@@ -20,7 +20,7 @@ import {
   BarChart3,
   Users,
   Clock,
-  DollarSign,
+  IndianRupee,
   TrendingUp,
   CalendarCheck,
   Download,
@@ -187,7 +187,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Monthly Net Payroll</span>
             <div className="p-2.5 rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
-              <DollarSign className="w-4 h-4" />
+              <IndianRupee className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-4">
@@ -275,7 +275,7 @@ export const AnalyticsView: React.FC = () => {
               <h3 className="font-bold text-slate-900 text-sm">Department Payroll Allocation</h3>
               <p className="text-xs text-slate-500">Monthly compensation budget share</p>
             </div>
-            <DollarSign className="w-4 h-4 text-brand-600" />
+            <IndianRupee className="w-4 h-4 text-brand-600" />
           </div>
 
           <div className="h-56">

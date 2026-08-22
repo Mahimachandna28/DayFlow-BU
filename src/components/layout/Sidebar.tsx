@@ -1,10 +1,9 @@
-import React from 'react';
 import {
   LayoutDashboard,
   Users,
   Clock,
   CalendarDays,
-  DollarSign,
+  IndianRupee,
   UserCircle2,
   BarChart3,
   ShieldCheck,
@@ -41,7 +40,7 @@ export const Sidebar: React.FC = () => {
       badge: isAdminOrHR && pendingLeavesCount > 0 ? `${pendingLeavesCount} Pending` : undefined,
       badgeColor: 'bg-amber-500 text-white',
     },
-    { id: 'payroll', label: 'Payroll & Salary', icon: DollarSign },
+    { id: 'payroll', label: 'Payroll & Salary', icon: IndianRupee },
     { id: 'profile', label: 'My Profile', icon: UserCircle2 },
     { id: 'analytics', label: 'Reports & Analytics', icon: BarChart3 },
   ];

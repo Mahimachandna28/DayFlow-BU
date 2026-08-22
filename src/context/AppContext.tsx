@@ -6,6 +6,7 @@ import {
   Profile,
   SalaryStructure,
   AttendanceRecord,
+  AttendanceStatus,
   MockLocationStatus,
   LeaveRequest,
   NotificationItem,
@@ -403,76 +404,164 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addToast('Logged Out', 'You have been signed out successfully.', 'info');
   };
 
-  // Attendance Workflows
+  // Attendance Workflows (Optimistic + Backend Sync)
   const punchIn = async () => {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const geoProfile = GEO_PROFILES[mockLocationStatus] || GEO_PROFILES.office;
+
+    // 1. Optimistic Local State Update
+    setActiveSession({
+      isActive: true,
+      startTime: Date.now(),
+      elapsedSeconds: 0,
+      isOnBreak: false,
+      breakStartTime: null,
+      totalBreakSeconds: 0,
+      locationStatus: mockLocationStatus,
+      geoDistanceKm: geoProfile.distanceKm,
+    });
+
+    setAttendanceRecords((prev) => {
+      const existingIdx = prev.findIndex((r) => r.userId === currentUser.id && r.date === todayStr);
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = {
+          ...updated[existingIdx],
+          checkIn: timeStr,
+          status: 'PRESENT',
+          remarks: geoProfile.remarks,
+          locationStatus: mockLocationStatus,
+          geoDistanceKm: geoProfile.distanceKm,
+          geoLabel: geoProfile.label,
+        };
+        return updated;
+      } else {
+        const newRecord: AttendanceRecord = {
+          id: `att-${Date.now()}`,
+          userId: currentUser.id,
+          employeeName: `${currentUser.profile.firstName} ${currentUser.profile.lastName}`,
+          employeeId: currentUser.employeeId,
+          department: currentUser.profile.department,
+          date: todayStr,
+          checkIn: timeStr,
+          checkOut: null,
+          totalHours: 0.1,
+          status: 'PRESENT',
+          remarks: geoProfile.remarks,
+          locationStatus: mockLocationStatus,
+          geoDistanceKm: geoProfile.distanceKm,
+          geoLabel: geoProfile.label,
+        };
+        return [newRecord, ...prev];
+      }
+    });
+
+    if (mockLocationStatus === 'remote') {
+      addToast('Geo-fence Warning', 'Warning: Punching from outside company perimeter.', 'warning');
+    } else if (mockLocationStatus === 'blocked') {
+      addToast('GPS Warning', 'Punch logged, but location sensor was unavailable.', 'warning');
+    } else {
+      addToast('Punched In', 'Clock started. Have a productive workday!');
+    }
+
+    // 2. Background API Sync
     try {
       const res = await apiFetch('/api/attendance/punch-in', {
         method: 'POST',
         body: JSON.stringify({ locationStatus: mockLocationStatus }),
       });
-      if (res.success) {
+      if (res?.success && res.session) {
         setActiveSession(res.session);
-        setAttendanceRecords((prev) => {
-          const exists = prev.some((r) => r.id === res.record.id);
-          return exists ? prev.map((r) => (r.id === res.record.id ? res.record : r)) : [res.record, ...prev];
-        });
-
-        const geoProfile = GEO_PROFILES[mockLocationStatus];
-        if (mockLocationStatus === 'remote') {
-          addToast('Geo-fence Warning', `Warning: Punching from outside company perimeter.`, 'warning');
-        } else if (mockLocationStatus === 'blocked') {
-          addToast('GPS Warning', 'Punch logged, but location sensor was unavailable.', 'warning');
-        } else {
-          addToast('Punched In', `Clock started. Have a productive day!`);
-        }
       }
-    } catch (err: any) {
-      addToast('Punch In Failed', err.message || 'Error occurred during punch in', 'error');
+    } catch (err) {
+      console.log('Background punch-in sync notice:', err);
     }
   };
 
   const punchOut = async () => {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const finalHours = Math.max(0.1, +(activeSession.elapsedSeconds / 3600).toFixed(2));
+    const status: AttendanceStatus = finalHours < 4.0 ? 'HALF_DAY' : 'PRESENT';
+
+    // 1. Optimistic Local State Update
+    setActiveSession({
+      isActive: false,
+      startTime: null,
+      elapsedSeconds: 0,
+      isOnBreak: false,
+      breakStartTime: null,
+      totalBreakSeconds: 0,
+      locationStatus: activeSession.locationStatus,
+      geoDistanceKm: activeSession.geoDistanceKm,
+    });
+
+    setAttendanceRecords((prev) => {
+      const existingIdx = prev.findIndex((r) => r.userId === currentUser.id && r.date === todayStr);
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = {
+          ...updated[existingIdx],
+          checkOut: timeStr,
+          totalHours: finalHours,
+          status,
+        };
+        return updated;
+      }
+      return prev;
+    });
+
+    addToast('Punched Out', `Clock stopped. Total shift: ${finalHours} hrs.`);
+
+    // 2. Background API Sync
     try {
-      // Sync timer before punch out
       await apiFetch('/api/attendance/sync-timer', {
         method: 'POST',
         body: JSON.stringify({ elapsedSeconds: activeSession.elapsedSeconds }),
       });
-
-      const res = await apiFetch('/api/attendance/punch-out', {
-        method: 'POST',
-      });
-      if (res.success) {
-        setActiveSession(res.session);
-        setAttendanceRecords((prev) => prev.map((r) => (r.id === res.record.id ? res.record : r)));
-        addToast('Punched Out', `Clock stopped. Total time: ${res.record.totalHours} hrs.`);
-      }
-    } catch (err: any) {
-      addToast('Punch Out Failed', err.message || 'Error occurred during punch out', 'error');
+      await apiFetch('/api/attendance/punch-out', { method: 'POST' });
+    } catch (err) {
+      console.log('Background punch-out sync notice:', err);
     }
   };
 
   const toggleBreak = async () => {
+    const now = Date.now();
+    const isEnteringBreak = !activeSession.isOnBreak;
+
+    // 1. Optimistic Local State Update
+    if (isEnteringBreak) {
+      setActiveSession((prev) => ({
+        ...prev,
+        isOnBreak: true,
+        breakStartTime: now,
+      }));
+      addToast('On Break', 'Clock is paused during your break.', 'warning');
+    } else {
+      const breakSecs = activeSession.breakStartTime
+        ? Math.floor((now - activeSession.breakStartTime) / 1000)
+        : 0;
+      setActiveSession((prev) => ({
+        ...prev,
+        isOnBreak: false,
+        breakStartTime: null,
+        totalBreakSeconds: prev.totalBreakSeconds + (breakSecs > 0 ? breakSecs : 0),
+      }));
+      addToast('Break Ended', 'Resumed active work session.', 'info');
+    }
+
+    // 2. Background API Sync
     try {
-      // Sync timer before break toggle
       await apiFetch('/api/attendance/sync-timer', {
         method: 'POST',
         body: JSON.stringify({ elapsedSeconds: activeSession.elapsedSeconds }),
       });
-
-      const res = await apiFetch('/api/attendance/toggle-break', {
-        method: 'POST',
-      });
-      if (res.success) {
-        setActiveSession(res.session);
-        if (res.session.isOnBreak) {
-          addToast('On Break', 'Clock is paused during your break.', 'warning');
-        } else {
-          addToast('Break Ended', 'Resumed active work session.', 'info');
-        }
-      }
-    } catch (err: any) {
-      addToast('Toggle Break Failed', err.message || 'Error occurred during break toggle', 'error');
+      await apiFetch('/api/attendance/toggle-break', { method: 'POST' });
+    } catch (err) {
+      console.log('Background break sync notice:', err);
     }
   };
 

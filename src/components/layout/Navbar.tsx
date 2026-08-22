@@ -9,7 +9,7 @@ import {
   Clock,
   LogOut,
   Calendar,
-  DollarSign,
+  IndianRupee,
   User as UserIcon,
   MapPin,
 } from 'lucide-react';
@@ -217,7 +217,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => 
                           {notif.type === 'leave' ? (
                             <Calendar className="w-4 h-4" />
                           ) : notif.type === 'payroll' ? (
-                            <DollarSign className="w-4 h-4" />
+                            <IndianRupee className="w-4 h-4" />
                           ) : (
                             <Bell className="w-4 h-4" />
                           )}
@@ -291,9 +291,9 @@ export const Navbar: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => 
                       setCurrentView('payroll');
                       setShowUserDropdown(false);
                     }}
-                    className="w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                   >
-                    <DollarSign className="w-3.5 h-3.5 text-slate-400" /> Salary & Payslips
+                    <IndianRupee className="w-3.5 h-3.5 text-slate-400" /> Salary & Payslips
                   </button>
                 </div>
 

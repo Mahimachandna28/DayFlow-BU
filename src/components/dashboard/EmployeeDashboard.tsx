@@ -5,7 +5,7 @@ import {
   Square,
   Coffee,
   Calendar,
-  DollarSign,
+  IndianRupee,
   User,
   ArrowRight,
   TrendingUp,
@@ -262,22 +262,22 @@ export const EmployeeDashboard: React.FC = () => {
           >
             <div className="flex items-start justify-between">
               <div className="p-3 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100">
-                <DollarSign className="w-5 h-5" />
+                <IndianRupee className="w-5 h-5" />
               </div>
               <span className="text-xs font-semibold text-brand-600 flex items-center gap-1">
                 Payslips <ArrowRight className="w-3 h-3" />
               </span>
             </div>
             <div className="mt-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-slate-900">
-                  ${currentUser.salary.netSalary.toLocaleString()}
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-extrabold text-slate-900">
+                  ₹{currentUser.salary.netSalary.toLocaleString('en-IN')}
                 </span>
-                <span className="text-xs font-semibold text-slate-500">USD</span>
+                <span className="text-xs font-semibold text-slate-500 font-mono">INR</span>
               </div>
               <p className="text-xs font-bold text-slate-800 mt-1">Net Monthly Compensation</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Direct Deposit: {currentUser.salary.bankAccount}
+                NEFT/RTGS to {currentUser.salary.bankName}
               </p>
             </div>
           </div>

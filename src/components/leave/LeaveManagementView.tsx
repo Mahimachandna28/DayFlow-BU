@@ -10,6 +10,8 @@ import {
   FileText,
   AlertCircle,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LeaveType, LeaveStatus, LeaveRequest } from '../../types';
@@ -31,6 +33,8 @@ export const LeaveManagementView: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
+  const [historyPage, setHistoryPage] = useState(1);
+  const historyPageSize = 5;
 
   // Review comments input state
   const [reviewComments, setReviewComments] = useState<{ [key: string]: string }>({});
@@ -309,7 +313,9 @@ export const LeaveManagementView: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  pastLeaves.map((log) => (
+                  pastLeaves
+                    .slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize)
+                    .map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50/50 transition-all">
                       {isAdminOrHR && (
                         <td className="p-4 pl-6">
@@ -351,6 +357,39 @@ export const LeaveManagementView: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* History Pagination Bar */}
+          {pastLeaves.length > historyPageSize && (
+            <div className="p-4 bg-slate-50/80 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+              <span>
+                Showing {(historyPage - 1) * historyPageSize + 1} to{' '}
+                {Math.min(historyPage * historyPageSize, pastLeaves.length)} of {pastLeaves.length} records
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                  disabled={historyPage === 1}
+                  className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="font-bold text-slate-800 px-2">
+                  Page {historyPage} of {Math.ceil(pastLeaves.length / historyPageSize) || 1}
+                </span>
+                <button
+                  onClick={() =>
+                    setHistoryPage((p) =>
+                      Math.min(Math.ceil(pastLeaves.length / historyPageSize) || 1, p + 1)
+                    )
+                  }
+                  disabled={historyPage >= (Math.ceil(pastLeaves.length / historyPageSize) || 1)}
+                  className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
